@@ -1,4 +1,4 @@
-package votingapp
+	package votingapp
 
 class Poll(val question: String, val choices: List[PollChoice]) {
 	var votes: Votes = Votes(choices)
