@@ -29,7 +29,7 @@ trait RdObject {
 class CommonAncestor[+RDO <: RdObject](one: RDO, other: RDO) extends RdObject {
 
 	// determine it once and defer all RdObject methods to it
-	private val commonAncestor: RdObject = {
+	private val commonAncestor: RDO = {
 		// determine here... & probably cache or is that not needed in scala? :S
 		// FIXME: proper determination
 		one
@@ -44,7 +44,7 @@ class CommonAncestor[+RDO <: RdObject](one: RDO, other: RDO) extends RdObject {
 	}
 
 	// FIXME: determine what to do with this, fix return value/type
-    def hasDiverged(other: RdObject): Long =  {
+    def hasDiverged: Long =  {
 		// FIXME: non-logical result
 	    if (this.currentVersion != other.currentVersion){
 			commonAncestor.currentVersion
