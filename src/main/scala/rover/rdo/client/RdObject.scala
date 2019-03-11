@@ -26,12 +26,13 @@ trait RdObject {
   * @param one Some RDO
   * @param other Some other RDO
   */
-class CommonAncestor[+RDO <: RdObject](one: RDO, other: RDO) extends RdObject {
+class CommonAncestor[RDO <: RdObject](one: RDO, other: RDO) extends RdObject {
 
 	// determine it once and defer all RdObject methods to it
 	private val commonAncestor: RDO = {
 		// determine here... & probably cache or is that not needed in scala? :S
-		// FIXME: proper determination
+		// FIXME: proper determination (need to have whole range of intermediate
+		// versions available
 		one
 	}
 
