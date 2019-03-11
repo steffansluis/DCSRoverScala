@@ -29,11 +29,7 @@ class Votes(val asMap: Map[PollChoice, Int]) extends AtomicObjectState[Votes] {
 	  * @return New state with the vote added
 	  */
 	def add(vote: PollChoice): Votes = {
-		
 		return applyOp(new CastVoteOp(vote))
-		
-//		return this
-//		new CastVoteOp(vote).applyOn(this)
 	}
 
 	def majorityChoice: PollChoice = {
