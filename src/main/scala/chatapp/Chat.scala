@@ -33,10 +33,9 @@ class Chat(var messages: List[ChatMessage]) extends RdObject {
 		//TODO: terminate
 	}
 
-	override def version: Long = {
+	override def currentVersion(): Long = {
 		messages.size
 	}
-
 
 	override def stableVersion: Long = {
 		// TODO: the stable version (last committed)
@@ -48,8 +47,6 @@ class Chat(var messages: List[ChatMessage]) extends RdObject {
 			println(s"body: ${i.body}, author: ${i.author}, time: ${i.timestamp}")
 		}
 	}
-
-
 }
 
 class ChatMessage(val body: String,
