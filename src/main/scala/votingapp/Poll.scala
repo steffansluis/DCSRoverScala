@@ -1,4 +1,6 @@
-	package votingapp
+package votingapp
+
+import rover.rdo.{AtomicObjectState, ObjectState, Op}
 
 class Poll(val question: String, val choices: List[PollChoice]) {
 	var votes: Votes = Votes(choices)
@@ -20,14 +22,16 @@ class PollResult(private  val votes: Votes) {
 
 case class PollChoice(choice: String)
 
-class Votes(val asMap: Map[PollChoice, Int]) {
+class Votes(val asMap: Map[PollChoice, Int]) extends AtomicObjectState[Op[Votes]] {
+	/**
+	  * Adds the given poll choice to the votes cast. Also: immutable object pattern.
+	  * @param vote The vote-choice to cast
+	  * @return New state with the vote added
+	  */
 	def add(vote: PollChoice): Votes = {
-		if (this.asMap contains vote) {
-			Votes(this.asMap updated (vote, this.asMap(vote) + 1))
-		}
-		else {
-			Votes(this.asMap updated (vote, 1))
-		}
+		applyOp(new CastVoteOp(vote))
+		return this
+//		new CastVoteOp(vote).applyOn(this)
 	}
 
 	def majorityChoice: PollChoice = {
@@ -49,6 +53,20 @@ object Votes {
 
 	def apply(votes: Map[PollChoice, Int]): Votes = {
 		return new Votes(votes)
+	}
+}
+
+trait VoteOp extends Op[Votes]
+
+// app code
+class CastVoteOp(private val vote: PollChoice) extends VoteOp {
+	final override def applyOn(state: Votes): Votes = {
+		if (state.asMap contains vote) {
+			Votes(state.asMap updated (vote, state.asMap(vote) + 1))
+		}
+		else {
+			Votes(state.asMap updated (vote, 1))
+		}
 	}
 }
 
