@@ -54,8 +54,6 @@ object Votes {
 	}
 }
 
-//trait VoteOp extends AtomicObjectState#Op
-
 // app code
 class CastVoteOp(private val vote: PollChoice) extends Votes#Op {
 	final override def apply(state: Votes): Votes = {
