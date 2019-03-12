@@ -11,31 +11,31 @@ jobs:
     <<: *defaults
     steps:
       - run: echo 'export ARTIFACT_BUILD=$CIRCLE_PROJECT_REPONAME-$CIRCLE_BUILD_NUM.zip' >> $BASH_ENV
-      - run:
-          name: Get sbt binary
-          command: |
-            apt install -y curl
-            curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb
-            dpkg -i sbt-$SBT_VERSION.deb
-            rm sbt-$SBT_VERSION.deb
+#      - run:
+#          name: Get sbt binary
+#          command: |
+#            apt install -y curl
+#            curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb
+#            dpkg -i sbt-$SBT_VERSION.deb
+#            rm sbt-$SBT_VERSION.deb
 
       - checkout
 
       - restore_cache:
           # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
-          key: sbt-cache
+          key: gradle-cache
 
       - run:
-          name: Compile
-          command: sbt clean update dist
+          name: make gradlew executable
+          command: chmod +x gradlew
 
       - run:
           name: Test
-          command: sbt test
+          command: gradle test
 
       - save_cache:
-          key: sbt-cache
+          key: gradle-cache
           paths:
             - "~/.ivy2/cache"
-            - "~/.sbt"
+            - "~/.gradle"
             - "~/.m2"
