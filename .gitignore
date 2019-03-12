@@ -2,9 +2,10 @@
 .idea
 .gradle
 
-!gradle/wrapper/*
-
 *.jar
 *.iml
 log
 target
+build
+
+!/gradle/**
