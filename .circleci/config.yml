@@ -31,7 +31,7 @@ jobs:
 
       - run:
           name: Test
-          command: gradle test
+          command: ./gradlew test
 
       - save_cache:
           key: gradle-cache
