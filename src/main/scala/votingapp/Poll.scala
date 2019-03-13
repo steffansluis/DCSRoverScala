@@ -6,7 +6,7 @@ class Poll(val question: String, val choices: List[PollChoice]) {
 	var votes: Votes = Votes(choices)
 
 	def cast(vote: PollChoice): Unit = {
-		println(s"Casting vote: $vote")
+		votes.add(vote)
 	}
 
 	def result: PollResult = {
@@ -29,13 +29,9 @@ class Votes(val map: Map[PollChoice, Int]) extends AtomicObjectState[Map[PollCho
 	  * @return New state with the vote added
 	  */
 	def add(vote: PollChoice): Unit = {
+		println(s"Casting vote: $vote")
 		applyOp(state => {
-			if (state contains vote) {
-				state updated (vote, state(vote) + 1)
-			}
-			else {
-				state updated (vote, 1)
-			}
+			state updated (vote, state(vote) + 1)
 		})
 	}
 
@@ -53,11 +49,11 @@ class Votes(val map: Map[PollChoice, Int]) extends AtomicObjectState[Map[PollCho
 object Votes {
 	def apply(choices: List[PollChoice]): Votes= {
 		// TODO: maybe remove, not needed anymore... we accept any choice? Or enforce only valid choices
-		return new Votes(choices.map(choice => (choice,0)).toMap)
+		return new Votes(choices.map(choice => (choice,0)).toMap.withDefaultValue(0))
 	}
 
 	def apply(votes: Map[PollChoice, Int]): Votes = {
-		return new Votes(votes)
+		return new Votes(votes.withDefaultValue(0))
 	}
 }
 
@@ -79,6 +75,7 @@ object henk {
 		println(poll.votes)
 
 		poll.cast(PollChoice("Yes"))
+		poll.cast(PollChoice("No"))
 		poll.cast(PollChoice("No"))
 		println(poll.votes)
 		println(poll.result.winner)
