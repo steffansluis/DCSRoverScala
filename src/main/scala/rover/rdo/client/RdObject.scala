@@ -1,7 +1,9 @@
 package rover.rdo.client
 
+import rover.rdo.{AtomicObjectState, ObjectState, Server}
+
 //FIXME: use hashes instead of Longs/Strings
-trait RdObject {
+trait RdObject[S <: ObjectState] {
 
 	/**
 	  * The current version of the RDO instance, if current == stable
@@ -16,6 +18,27 @@ trait RdObject {
 	  * @return Version of persisted RDO state the instance has started with
 	  */
 	def stableVersion: Long
+
+	/**
+		* The home server of the RDO.
+		*/
+	def homeServer: Server[S]
+
+	protected def state: S
+}
+
+trait ConflicResolutionStrategy[A <: ConflicResolutionStrategy[A]] {
+
+}
+
+abstract class AtomicRDObject[S <: AtomicObjectState[S]](private val state: S, private val conflictResolutionStrategy: ConflicResolutionStrategy[S]) extends RdObject[S] {
+//	override def state: S = {
+//
+//	}
+
+	def commonAncestorState(other: AtomicRDObject[S]): CommonAncestorState[S] = {
+		return new CommonAncestorState[S](this.state, other.state)
+	}
 }
 
 /**
@@ -26,35 +49,41 @@ trait RdObject {
   * @param one Some RDO
   * @param other Some other RDO
   */
-class CommonAncestor[RDO <: RdObject](private val one: RDO, private val other: RDO) extends RdObject {
+class CommonAncestorState[S <: AtomicObjectState[S]](private val one: AtomicObjectState[S], private val other: AtomicObjectState[S]) extends AtomicObjectState[S] {
+
+	// Add logic to determine common ancestor here (probably lazily)
 
 	// determine it once and defer all RdObject methods to it
-	private val commonAncestor: RDO = {
-		// determine here... & probably cache or is that not needed in scala? :S
-		// FIXME: proper determination (need to have whole range of intermediate
-		// versions available
-		one
-	}
+//	private val commonAncestor: RdObject[S] = {
+//		// determine here... & probably cache or is that not needed in scala? :S
+//		// FIXME: proper determination (need to have whole range of intermediate
+//		// versions available
+//		one
+//	}
 
-	override def currentVersion: Long = {
-		commonAncestor.currentVersion
-	}
+//	override def currentVersion: Long = {
+//		commonAncestor.currentVersion
+//	}
+//
+//	override def stableVersion: Long = {
+//		commonAncestor.stableVersion
+//	}
 
-	override def stableVersion: Long = {
-		commonAncestor.stableVersion
-	}
+//	override def homeServer: Server[S] = {
+//		return null
+//	}
 
-	// FIXME: determine what to do with this, fix return value/type
-    def hasDiverged: Long =  {
-		// FIXME: non-logical result
-	    if (this.currentVersion != other.currentVersion){
-			commonAncestor.currentVersion
-		}
-		else{
-			println("Non-divergent objects")
-			this.currentVersion
-		}
-	}
+//	// FIXME: determine what to do with this, fix return value/type
+//    def hasDiverged: Long =  {
+//		// FIXME: non-logical result
+//	    if (this.currentVersion != other.currentVersion){
+//			commonAncestor.currentVersion
+//		}
+//		else{
+//			println("Non-divergent objects")
+//			this.currentVersion
+//		}
+//	}
 }
 
 class updateRDO(){

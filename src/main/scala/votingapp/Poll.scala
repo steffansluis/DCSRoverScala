@@ -7,6 +7,9 @@ class Poll(val question: String, val choices: List[PollChoice]) {
 
 	def cast(vote: PollChoice): Unit = {
 		println(s"Casting vote: $vote")
+		votes = votes.add(vote)
+//		votes = new Votes(op.apply(votes.value))
+
 	}
 
 	def result: PollResult = {
@@ -15,32 +18,37 @@ class Poll(val question: String, val choices: List[PollChoice]) {
 }
 
 class PollResult(private  val votes: Votes) {
-	def winner: PollChoice = {
-		votes.majorityChoice
-	}
+//	def winner: PollChoice = {
+//		votes.majorityChoice
+//	}
 }
 
 case class PollChoice(choice: String)
 
-class Votes(val asMap: Map[PollChoice, Int]) extends AtomicObjectState[Votes] {
+class Votes(val map: Map[PollChoice, Int] = Map[PollChoice, Int]()) extends AtomicObjectState[Map[PollChoice, Int]](map) {
+
+//	def this() {
+//		this(new Map[PollChoice, Int]())
+//	}
+
 	/**
 	  * Adds the given poll choice to the votes cast. Also: immutable object pattern.
 	  * @param vote The vote-choice to cast
 	  * @return New state with the vote added
 	  */
 	def add(vote: PollChoice): Votes = {
-		return applyOp(new CastVoteOp(vote))
+		return (applyOp(new CastVoteOp(vote))).asInstanceOf[Votes]
 	}
 
-	def majorityChoice: PollChoice = {
-		// FIXME: ties, idea: return a "poll-result" not the choice
-		val winner = this.asMap.maxBy(_._2)._1
-		return winner
-	}
-
-	override def toString: String = {
-		asMap.toString
-	}
+//	def majorityChoice: PollChoice = {
+//		// FIXME: ties, idea: return a "poll-result" not the choice
+//		val winner = this.asMap.maxBy(_._2)._1
+//		return winner
+//	}
+//
+//	override def toString: String = {
+//		asMap.toString
+//	}
 }
 
 object Votes {
@@ -56,13 +64,17 @@ object Votes {
 
 // app code
 class CastVoteOp(private val vote: PollChoice) extends Votes#Op {
-	final override def apply(state: Votes): Votes = {
-		if (state.asMap contains vote) {
-			Votes(state.asMap updated (vote, state.asMap(vote) + 1))
-		}
-		else {
-			Votes(state.asMap updated (vote, 1))
-		}
+//		final override def apply(state: AtomicObjectState[Map[PollChoice, Int]]): Votes = {
+//			super.apply(state).asInstanceOf[Votes]
+//		}
+
+		final override def apply(state: Map[PollChoice, Int]): Map[PollChoice, Int] = {
+			if (state contains vote) {
+				state updated (vote, state(vote) + 1)
+			}
+			else {
+				state updated (vote, 1)
+			}
 	}
 }
 
@@ -74,7 +86,7 @@ object henk {
 		poll.cast(PollChoice("Yes"))
 		poll.cast(PollChoice("No"))
 		println(poll.votes)
-		println(poll.result.winner)
+//		println(poll.result.winner)
 
 	}
 }
