@@ -1,9 +1,11 @@
 package chatapp
 
+import rover.rdo.AtomicObjectState
 import rover.rdo.client.RdObject
 
 // FIXME: ensure messages can be read, but not modified or reassigned...
-class Chat(var messages: List[ChatMessage]) extends RdObject {
+// FIXME: after state & rd object impl change
+class Chat(var messages: List[ChatMessage]) extends RdObject[String](new AtomicObjectState[String]("ss")) {
 
 	// TODO: Something with users, crypto stuff on identity
 	// FIXME: Hashes should be used here as well as user ids

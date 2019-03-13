@@ -1,6 +1,6 @@
 package rover.rdo
 
-abstract class AtomicObjectState[A](private var value: A) extends ObjectState {
+class AtomicObjectState[A](private var value: A) extends ObjectState {
 	private var ops: List[Op] = List()
 
 	type Op = A => A

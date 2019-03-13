@@ -1,17 +1,23 @@
 package votingapp
 
 import rover.rdo.AtomicObjectState
+import rover.rdo.client.RdObject
 
-class Poll(val question: String, val choices: List[PollChoice]) {
-	var votes: Votes = Votes(choices)
+class Poll(val question: String, val choices: List[PollChoice]) extends RdObject(new AtomicObjectState(Votes(choices))) {
 
 	def cast(vote: PollChoice): Unit = {
-		votes.add(vote)
+		modifyState(votes => votes.add(vote))
 	}
 
 	def result: PollResult = {
-		return new PollResult(votes)
+		val votesState = this.immutableState
+		return new PollResult(votesState)
 	}
+
+	override def toString: String = immutableState.toString
+
+	override def currentVersion: Long = 0
+	override def stableVersion: Long = 0
 }
 
 class PollResult(private  val votes: Votes) {
@@ -22,27 +28,24 @@ class PollResult(private  val votes: Votes) {
 
 case class PollChoice(choice: String)
 
-class Votes(val map: Map[PollChoice, Int]) extends AtomicObjectState[Map[PollChoice, Int]](map) {
+class Votes(val map: Map[PollChoice, Int]){
 	/**
 	  * Adds the given poll choice to the votes cast. Also: immutable object pattern.
 	  * @param vote The vote-choice to cast
 	  * @return New state with the vote added
 	  */
-	def add(vote: PollChoice): Unit = {
-		println(s"Casting vote: $vote")
-		applyOp(state => {
-			state updated (vote, state(vote) + 1)
-		})
+	def add(vote: PollChoice): Votes = {
+		Votes(map updated (vote, map(vote) + 1))
 	}
 
 	def majorityChoice: PollChoice = {
 		// FIXME: ties, idea: return a "poll-result" not the choice
-		val winner = this.immutableState.maxBy(_._2)._1
+		val winner = map.maxBy(_._2)._1
 		return winner
 	}
 
 	override def toString: String = {
-		immutableState.toString
+		map.toString
 	}
 }
 
@@ -57,27 +60,15 @@ object Votes {
 	}
 }
 
-// app code
-//class CastVoteOp(private val vote: PollChoice) extends Votes#Op {
-//	final override def apply(state: Votes): Votes = {
-//		if (state.asMap contains vote) {
-//			Votes(state.asMap updated (vote, state.asMap(vote) + 1))
-//		}
-//		else {
-//			Votes(state.asMap updated (vote, 1))
-//		}
-//	}
-//}
-
 object henk {
 	def main(args: Array[String]): Unit = {
 		var poll = new Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
-		println(poll.votes)
+		println(poll)
 
 		poll.cast(PollChoice("Yes"))
 		poll.cast(PollChoice("No"))
 		poll.cast(PollChoice("No"))
-		println(poll.votes)
+		println(poll)
 		println(poll.result.winner)
 
 	}
