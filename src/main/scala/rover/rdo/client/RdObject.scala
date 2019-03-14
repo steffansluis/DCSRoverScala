@@ -31,13 +31,13 @@ class RdObject[A] () {
 	  * initially.
 	  * @return Version of persisted RDO state the instance has started with
 	  */
-	def stableVersion: Long = {
-		// TODO: determine from state
-		null
-	}
+//	def stableVersion: Long = {
+//		// TODO: determine from state
+//		null
+//	}
 
 
-	def getStates: List[AtomicObjectState[A]] = state.getStates
+	def getValues: List[A] = state.getStates
 
 
 	protected final def modifyState(op: AtomicObjectState[A]#Op): Unit = {
@@ -64,11 +64,11 @@ class CommonAncestor[A](private val one: RdObject[A], private val other: RdObjec
 		// determine here... & probably cache or is that not needed in scala? :S
 		// FIXME: proper determination (need to have whole range of intermediate
 		// versions available
-		for (i <- one.getStates) {
-			for (j <- other.getStates) {
+		for (i <- one.getValues) {
+			for (j <- other.getValues) {
 
-				if (currentVersion(i) == currentVersion(j)) {
-					val ancestor = new RdObject[A](new AtomicObjectState[A](i.immutableState))
+				if (currentVersion(new AtomicObjectState[A](i)) == currentVersion(new AtomicObjectState[A](j))) {
+					val ancestor = new RdObject[A](new AtomicObjectState[A](i))
 					return ancestor
 				}
 			}

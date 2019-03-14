@@ -2,7 +2,7 @@ package rover.rdo
 
 class AtomicObjectState[A](private var value: A) extends ObjectState {
 	private var ops: List[Op] = List()
-	private var states: List[AtomicObjectState[A]] = List(new AtomicObjectState[A](value))
+	private var states: List[A] = List(value)
 
 	type Op = A => A
 
@@ -10,7 +10,7 @@ class AtomicObjectState[A](private var value: A) extends ObjectState {
 
 	def opsSize: Long = ops.length
 
-	def getStates: List[AtomicObjectState[A]] =  return states
+	def getStates: List[A] =  return states
 
 	def applyOp(operation: Op): Unit = {
 		// Operation must apply itself to the state
@@ -20,7 +20,7 @@ class AtomicObjectState[A](private var value: A) extends ObjectState {
 
 		// Record the operation in the "log" or "event stream" of operations
 		this.ops = this.ops :+ operation
-		this.states = this.states :+ new AtomicObjectState[A](result)
+		this.states = this.states :+ result
 
 		this.value = result
 	}

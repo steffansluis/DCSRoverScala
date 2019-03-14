@@ -16,8 +16,8 @@ class Poll(val question: String, val choices: List[PollChoice]) extends RdObject
 
 	override def toString: String = immutableState.toString
 
-	override def currentVersion: Long = 0
-	override def stableVersion: Long = 0
+//	override def currentVersion: Long = 0
+//	override def stableVersion: Long = 0
 }
 
 class PollResult(private  val votes: Votes) {
