@@ -39,10 +39,10 @@ class Chat(var messages: List[ChatMessage]) extends RdObject[String](new AtomicO
 		messages.size
 	}
 
-	override def stableVersion: Long = {
-		// TODO: the stable version (last committed)
-		messages.size
-	}
+//	override def stableVersion: Long = {
+//		// TODO: the stable version (last committed)
+//		messages.size
+//	}
 
 	def printMessages(): Unit = {
 		for (i <- messages) {
