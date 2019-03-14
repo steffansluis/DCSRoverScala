@@ -3,21 +3,42 @@ package rover.rdo.client
 import rover.rdo.AtomicObjectState
 
 //FIXME: use hashes instead of Longs/Strings?
-abstract class RdObject[A] (private var state: AtomicObjectState[A]) {
+class RdObject[A] () {
 
+	var state: AtomicObjectState[A] = null
+
+	def this(state: AtomicObjectState[A]) = {
+		this()
+		this.state = state
+	}
 	/**
 	  * The current version of the RDO instance, if current == stable
 	  * then the RDO does not contain any unsaved state changes
 	  * @return The current version of the RDO state
 	  */
-	def currentVersion: Long // TODO: determine from state
+	def currentVersion: Long = {
+		// FIXME: crude way of defining an RDO's version
+		// Fancier methods could also be used as hashes/crypto
+		return state.opsSize
+	}
+
+	def currentVersion(cstate: AtomicObjectState[A]): Long  = {
+		return cstate.opsSize
+	}
 
 	/**
 	  * The persisted (on master) version this RDO instance was based on
 	  * initially.
 	  * @return Version of persisted RDO state the instance has started with
 	  */
-	def stableVersion: Long // TODO: determine from state
+	def stableVersion: Long = {
+		// TODO: determine from state
+		null
+	}
+
+
+	def getStates: List[AtomicObjectState[A]] = state.getStates
+
 
 	protected final def modifyState(op: AtomicObjectState[A]#Op): Unit = {
 		state.applyOp(op)
@@ -36,16 +57,26 @@ abstract class RdObject[A] (private var state: AtomicObjectState[A]) {
   * @param one Some RDO
   * @param other Some other RDO
   */
-//class CommonAncestor[RDO <: RdObject](private val one: RDO, private val other: RDO) extends RdObject {
-//
-//	// determine it once and defer all RdObject methods to it
-//	private val commonAncestor: RDO = {
-//		// determine here... & probably cache or is that not needed in scala? :S
-//		// FIXME: proper determination (need to have whole range of intermediate
-//		// versions available
-//		one
-//	}
-//
+class CommonAncestor[A](private val one: RdObject[A], private val other: RdObject[A]) extends RdObject[A] {
+
+	// determine it once and defer all RdObject methods to it
+	private def commonAncestor: RdObject[A] = {
+		// determine here... & probably cache or is that not needed in scala? :S
+		// FIXME: proper determination (need to have whole range of intermediate
+		// versions available
+		for (i <- one.getStates) {
+			for (j <- other.getStates) {
+
+				if (currentVersion(i) == currentVersion(j)) {
+					val ancestor = new RdObject[A](new AtomicObjectState[A](i.immutableState))
+					return ancestor
+				}
+			}
+		}
+		return new RdObject[A]()
+	}
+
+
 //	override def currentVersion: Long = {
 //		commonAncestor.currentVersion
 //	}
@@ -65,7 +96,7 @@ abstract class RdObject[A] (private var state: AtomicObjectState[A]) {
 //			this.currentVersion
 //		}
 //	}
-//}
+}
 
 class updateRDO(){
 	//TODO: apply tentative updates to RDO

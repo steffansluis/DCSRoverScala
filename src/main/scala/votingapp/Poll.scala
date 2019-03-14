@@ -3,7 +3,7 @@ package votingapp
 import rover.rdo.AtomicObjectState
 import rover.rdo.client.RdObject
 
-class Poll(val question: String, val choices: List[PollChoice]) extends RdObject(new AtomicObjectState(Votes(choices))) {
+class Poll(val question: String, val choices: List[PollChoice]) extends RdObject[Votes](new AtomicObjectState[Votes](Votes(choices))) {
 
 	def cast(vote: PollChoice): Unit = {
 		modifyState(votes => votes.add(vote))
@@ -28,7 +28,7 @@ class PollResult(private  val votes: Votes) {
 
 case class PollChoice(choice: String)
 
-class Votes(val map: Map[PollChoice, Int]){
+class Votes(val map: Map[PollChoice, Int]) {
 	/**
 	  * Adds the given poll choice to the votes cast. Also: immutable object pattern.
 	  * @param vote The vote-choice to cast
@@ -70,6 +70,8 @@ object henk {
 		poll.cast(PollChoice("No"))
 		println(poll)
 		println(poll.result.winner)
+		println("Immutable state:" + poll.toString)
+
 
 	}
 }
