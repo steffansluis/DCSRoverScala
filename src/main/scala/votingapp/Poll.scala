@@ -1,9 +1,9 @@
 package votingapp
 
 import rover.rdo.AtomicObjectState
-import rover.rdo.client.RdObject
+import rover.rdo.client.{CommonAncestor, RdObject}
 
-class Poll(val question: String, val choices: List[PollChoice]) extends RdObject[Votes](new AtomicObjectState[Votes](Votes(choices))) {
+case class Poll(val question: String, val choices: List[PollChoice]) extends RdObject[Votes](new AtomicObjectState[Votes](Votes(choices))) {
 
 	def cast(vote: PollChoice): Unit = {
 		modifyState(votes => votes.add(vote))
@@ -62,13 +62,18 @@ object Votes {
 
 object henk {
 	def main(args: Array[String]): Unit = {
-		var poll = new Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
+		val poll = new Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
+		val poll2 = poll.copy()
 		println(poll)
 
 		poll.cast(PollChoice("Yes"))
 		poll.cast(PollChoice("No"))
-		poll.cast(PollChoice("No"))
-		println(poll)
+		poll2.cast(PollChoice("No"))
+		poll2.cast(PollChoice("No"))
+		println("Poll:" + poll)
+		println("Poll2:" + poll2)
+		val parent = new CommonAncestor[Votes](poll, poll2)
+		println("Parent:" + parent.toString)
 		println(poll.result.winner)
 		println("Immutable state:" + poll.toString)
 
