@@ -11,17 +11,18 @@ class RdObject[A] () {
 		this()
 		this.state = state
 	}
+
 	/**
 	  * The current version of the RDO instance, if current == stable
 	  * then the RDO does not contain any unsaved state changes
 	  * @return The current version of the RDO state
 	  */
 	def currentVersion: Long = {
-		// FIXME: crude way of defining an RDO's version
-		// Fancier methods could also be used as hashes/crypto
 		return state.opsSize
 	}
 
+	//FIXME: this is a crude method of ectractingthe version; we need a better method
+	//two states are equivalent here if merely the same amount of operations are performed
 	def currentVersion(cstate: AtomicObjectState[A]): Long  = {
 		return cstate.opsSize
 	}
@@ -60,13 +61,12 @@ class RdObject[A] () {
 class CommonAncestor[A](private val one: RdObject[A], private val other: RdObject[A]) extends RdObject[A] {
 
 	// determine it once and defer all RdObject methods to it
-	private def commonAncestor: RdObject[A] = {
+	def commonAncestor: RdObject[A] = {
 		// determine here... & probably cache or is that not needed in scala? :S
 		// FIXME: proper determination (need to have whole range of intermediate
 		// versions available
-		for (i <- one.getValues) {
-			for (j <- other.getValues) {
-
+		for (i <- one.getValues.reverse) {
+			for (j <- other.getValues.reverse) {
 				if (currentVersion(new AtomicObjectState[A](i)) == currentVersion(new AtomicObjectState[A](j))) {
 					val ancestor = new RdObject[A](new AtomicObjectState[A](i))
 					return ancestor
@@ -74,6 +74,10 @@ class CommonAncestor[A](private val one: RdObject[A], private val other: RdObjec
 			}
 		}
 		return new RdObject[A]()
+	}
+
+	override def toString: String = {
+		commonAncestor.getValues.toString()
 	}
 
 
