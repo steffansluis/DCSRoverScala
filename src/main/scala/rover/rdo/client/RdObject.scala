@@ -63,8 +63,10 @@ class CommonAncestor[A](private val one: RdObject[A], private val other: RdObjec
 	// determine it once and defer all RdObject methods to it
 	def commonAncestor: RdObject[A] = {
 		// determine here... & probably cache or is that not needed in scala? :S
-		// FIXME: proper determination (need to have whole range of intermediate
-		// versions available
+		// FIXME: currently we return just the atomic state..what about the outstanding operations?
+		// can there be a fork in the history of the provided RDOs?
+		// since client RDOs apply tentative updates there shouldn't be any, apart from the common ancestor
+		// FIXME: might need to keep track of history from the last stable point
 		for (i <- one.getValues.reverse) {
 			for (j <- other.getValues.reverse) {
 				if (currentVersion(new AtomicObjectState[A](i)) == currentVersion(new AtomicObjectState[A](j))) {
