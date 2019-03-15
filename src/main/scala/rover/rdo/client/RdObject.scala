@@ -18,13 +18,13 @@ class RdObject[A] () {
 	  * @return The current version of the RDO state
 	  */
 	def currentVersion: Long = {
-		return state.opsSize
+		return state.numOperations
 	}
 
 	//FIXME: this is a crude method of ectractingthe version; we need a better method
 	//two states are equivalent here if merely the same amount of operations are performed
 	def currentVersion(cstate: AtomicObjectState[A]): Long  = {
-		return cstate.opsSize
+		return cstate.numOperations
 	}
 
 	/**
@@ -38,7 +38,7 @@ class RdObject[A] () {
 //	}
 
 
-	def getValues: List[A] = state.getStates
+	def getImmutableStates: List[A] = state.getImmutableStates
 
 
 	protected final def modifyState(op: AtomicObjectState[A]#Op): Unit = {
@@ -67,8 +67,8 @@ class CommonAncestor[A](private val one: RdObject[A], private val other: RdObjec
 		// can there be a fork in the history of the provided RDOs?
 		// since client RDOs apply tentative updates there shouldn't be any, apart from the common ancestor
 		// FIXME: might need to keep track of history from the last stable point
-		for (i <- one.getValues.reverse) {
-			for (j <- other.getValues.reverse) {
+		for (i <- one.getImmutableStates.reverse) {
+			for (j <- other.getImmutableStates.reverse) {
 				if (currentVersion(new AtomicObjectState[A](i)) == currentVersion(new AtomicObjectState[A](j))) {
 					val ancestor = new RdObject[A](new AtomicObjectState[A](i))
 					return ancestor
@@ -79,7 +79,7 @@ class CommonAncestor[A](private val one: RdObject[A], private val other: RdObjec
 	}
 
 	override def toString: String = {
-		commonAncestor.getValues.toString()
+		commonAncestor.getImmutableStates.toString()
 	}
 
 
