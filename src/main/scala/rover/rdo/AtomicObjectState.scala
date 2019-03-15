@@ -3,14 +3,9 @@ package rover.rdo
 import rover.rdo.client.LogRecord
 
 class AtomicObjectState[A](private var value: A) extends ObjectState {
-//	private var ops: List[Op] = List()
-//	private var states: List[A] = List(value)
-
-	type Op = A => A
-
+	// Initialization of the record with the current state and empyt list of ops
 	private val record: LogRecord[A] = new LogRecord[A](List(value))
-
-
+	type Op = A => A
 
 	def immutableState: A = value
 
@@ -26,10 +21,7 @@ class AtomicObjectState[A](private var value: A) extends ObjectState {
 		val result = operation.apply(this.value)
 
 		// Record the operation in the Log
-		this.record.updateRecord(new AtomicObjectState[A](result), result, operation)
-//		this.ops = this.ops :+ operation
-//		this.states = this.states :+ result
-
+		this.record.updateRecord(result, operation)
 		this.value = result
 	}
 }

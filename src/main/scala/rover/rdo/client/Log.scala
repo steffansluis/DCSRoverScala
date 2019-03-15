@@ -1,7 +1,5 @@
 package rover.rdo.client
 
-import rover.rdo.AtomicObjectState
-
 /**
   * The class Log encapsulates the records from all the active RDOs. The Log
   * contains a map of [Long, LogRecord] key-value pairs.
@@ -16,7 +14,7 @@ class Log[A] {
   }
 
   def removeFromMap(key:Long): Unit ={
-    if (logMap contains(key)){
+    if (logMap contains key){
       this.logMap = this.logMap - key
     }
   }
@@ -25,50 +23,42 @@ class Log[A] {
 
 /**
   * This class encapsulates all the information stored to log regarding a single RDO
-  * The class's fields are a list of atomic states, a list of immutable states and a
+  * The class's fields are a list of immutable states and a
   * list of operations applied since the records instantiation.
   */
-class LogRecord[A] extends OperationType[A]{
-//  private var atomicStates: List[AtomicObjectState[A]] = List()
+class LogRecord[A]{
   private var immutableStates: List[A] = List()
   private var operations: List[Op] = List()
 
-//  type Op = A => A
+  type Op = A => A
 
   def this(immutableStates: List[A]) {
     this()
-//    this.atomicStates = atomicStates
     this.immutableStates = immutableStates
     this.operations = List()
   }
 
 
-  def recordSize() = this.immutableStates.length
+  def recordSize(): Int = this.immutableStates.length
 
   def getImmutableStates : List[A] = this.immutableStates
 
   // Since the lists are immutable, there is no append but rather a new object
-  def updateRecord(atomicState: AtomicObjectState[A], immutableState: A, operation: Op): Unit ={
-//    this.atomicStates = this.atomicStates :+ atomicState
+  def updateRecord(immutableState: A, operation: Op): Unit ={
     this.immutableStates = this.immutableStates :+ immutableState
     this.operations = this.operations :+ operation
   }
 
 
   /**
-    * This method empties the logRecord; at the flushing only the last atomic and immutable
+    * This method empties the logRecord; at the flushing only the last immutable
     * states of the RDO are kept, which are also the current ones. On the contrary, operations
     * are completely flushed.
     */
   //FIXME: there is server-client interaction here; conflict resolution protocol should be incorp
   def flushRecord(): Unit ={
-//    this.atomicStates = List[AtomicObjectState[A]](atomicStates.last)
     this.immutableStates = List[A](immutableStates.last)
     this.operations = List[Op]()
   }
 
-}
-
-trait OperationType[A]{
-  type Op = A => A
 }
