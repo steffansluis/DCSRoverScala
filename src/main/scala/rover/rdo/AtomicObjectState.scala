@@ -1,16 +1,23 @@
 package rover.rdo
 
+import rover.rdo.client.LogRecord
+
 class AtomicObjectState[A](private var value: A) extends ObjectState {
-	private var ops: List[Op] = List()
-	private var states: List[A] = List(value)
+//	private var ops: List[Op] = List()
+//	private var states: List[A] = List(value)
 
 	type Op = A => A
 
+	private val record: LogRecord[A] = new LogRecord[A](List(value))
+
+
+
 	def immutableState: A = value
 
-	def opsSize: Long = ops.length
+	// The -1 corresponds to the initial state where no operation is yet applied
+	def numOperations: Long = this.record.recordSize() - 1
 
-	def getStates: List[A] =  return states
+	def getImmutableStates: List[A] =  this.record.getImmutableStates
 
 	def applyOp(operation: Op): Unit = {
 		// Operation must apply itself to the state
@@ -18,9 +25,10 @@ class AtomicObjectState[A](private var value: A) extends ObjectState {
 		// so that the framework can record the op
 		val result = operation.apply(this.value)
 
-		// Record the operation in the "log" or "event stream" of operations
-		this.ops = this.ops :+ operation
-		this.states = this.states :+ result
+		// Record the operation in the Log
+		this.record.updateRecord(new AtomicObjectState[A](result), result, operation)
+//		this.ops = this.ops :+ operation
+//		this.states = this.states :+ result
 
 		this.value = result
 	}
