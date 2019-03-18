@@ -1,64 +1,33 @@
 package rover.rdo.client
 
-/**
-  * The class Log encapsulates the records from all the active RDOs. The Log
-  * contains a map of [Long, LogRecord] key-value pairs.
-  */
-//FIXME: Most probably should be moved to server side
-class Log[A] {
+import rover.rdo.AtomicObjectState
 
-  private var logMap: Map[Long, LogRecord[A]] = Map()
-
-  def addToMap(key: Long, value: LogRecord[A]): Unit ={
-    this.logMap = this.logMap + (key -> value)
-  }
-
-  def removeFromMap(key:Long): Unit ={
-    if (logMap contains key){
-      this.logMap = this.logMap - key
-    }
-  }
-
+case class LogRecord[A](stateFrom: A, op: AtomicObjectState[A]#Op, stateResult: A) {
 }
 
 /**
-  * This class encapsulates all the information stored to log regarding a single RDO
-  * The class's fields are a list of immutable states and a
-  * list of operations applied since the records instantiation.
+  * This class encapsulates all the information stored to log regarding a single RDO state
   */
-class LogRecord[A]{
-  private var immutableStates: List[A] = List()
-  private var operations: List[Op] = List()
-
-  type Op = A => A
-
-  def this(immutableStates: List[A]) {
-    this()
-    this.immutableStates = immutableStates
-    this.operations = List()
-  }
-
-
-  def recordSize(): Int = this.immutableStates.length
-
-  def getImmutableStates : List[A] = this.immutableStates
+class Log[A](private val logList: List[LogRecord[A]] = List()) {
 
   // Since the lists are immutable, there is no append but rather a new object
-  def updateRecord(immutableState: A, operation: Op): Unit ={
-    this.immutableStates = this.immutableStates :+ immutableState
-    this.operations = this.operations :+ operation
+  def appended(logRecord: LogRecord[A]): Log[A] = {
+    val list = this.logList :+ logRecord
+    return new Log[A](list)
   }
 
+  def asList: List[LogRecord[A]] = {
+    return logList
+  }
+}
 
+object Log {
   /**
-    * This method empties the logRecord; at the flushing only the last immutable
-    * states of the RDO are kept, which are also the current ones. On the contrary, operations
-    * are completely flushed.
+    * Constructs a new log with an initial state. Use for objects with fresh state
+    * @tparam A
+    * @return
     */
-  //FIXME: there is server-client interaction here; conflict resolution protocol should be incorp
-  def flushRecord(): Unit ={
-    this.immutableStates = List[A](immutableStates.last)
-    this.operations = List[Op]()
-  }
-
+    def withInitialState[A](a: A): Log[A] = {
+        return new Log[A]().appended(LogRecord[A](a,null, a))
+    }
 }

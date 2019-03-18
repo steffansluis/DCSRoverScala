@@ -5,7 +5,7 @@ import rover.rdo.client.RdObject
 
 // FIXME: ensure messages can be read, but not modified or reassigned...
 // FIXME: after state & rd object impl change
-class Chat(var messages: List[ChatMessage]) extends RdObject[String](new AtomicObjectState[String]("ss")) {
+class Chat(var messages: List[ChatMessage]) extends RdObject[String](AtomicObjectState.initial("")) {
 
 	// TODO: Something with users, crypto stuff on identity
 	// FIXME: Hashes should be used here as well as user ids
@@ -35,7 +35,7 @@ class Chat(var messages: List[ChatMessage]) extends RdObject[String](new AtomicO
 		//TODO: terminate
 	}
 
-	override def currentVersion(): Long = {
+	def currentVersion(): Long = {
 		messages.size
 	}
 

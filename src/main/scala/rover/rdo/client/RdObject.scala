@@ -3,29 +3,29 @@ package rover.rdo.client
 import rover.rdo.AtomicObjectState
 
 //FIXME: use hashes instead of Longs/Strings?
-class RdObject[A] () {
+class RdObject[A](var state: AtomicObjectState[A]) {
 
-	var state: AtomicObjectState[A] = null
+//	var state: AtomicObjectState[A] = null
 
-	def this(state: AtomicObjectState[A]) = {
-		this()
-		this.state = state
-	}
+//	def this(state: AtomicObjectState[A]) = {
+//		this()
+//		this.state = state
+//	}
 
 	/**
 	  * The current version of the RDO instance, if current == stable
 	  * then the RDO does not contain any unsaved state changes
 	  * @return The current version of the RDO state
 	  */
-	def currentVersion: Long = {
-		return state.numOperations
-	}
+//	def currentVersion: Long = {
+//		return state.numOperations
+//	}
 
 	//FIXME: this is a crude method of ectractingthe version; we need a better method
 	//two states are equivalent here if merely the same amount of operations are performed
-	def currentVersion(cstate: AtomicObjectState[A]): Long  = {
-		return cstate.numOperations
-	}
+//	def currentVersion(cstate: AtomicObjectState[A]): Long  = {
+//		return cstate.numOperations
+//	}
 
 	/**
 	  * The persisted (on master) version this RDO instance was based on
@@ -38,15 +38,19 @@ class RdObject[A] () {
 //	}
 
 
-	def getImmutableStates: List[A] = state.getImmutableStates
+//	def getImmutableStates: List[A] = state.getImmutableStates
 
 
 	protected final def modifyState(op: AtomicObjectState[A]#Op): Unit = {
-		state.applyOp(op)
+		state = state.applyOp(op)
 	}
 
 	protected final def immutableState: A = {
 		return state.immutableState
+	}
+
+	override def toString: String = {
+		state.toString
 	}
 }
 
@@ -58,7 +62,7 @@ class RdObject[A] () {
   * @param one Some RDO
   * @param other Some other RDO
   */
-class CommonAncestor[A](private val one: RdObject[A], private val other: RdObject[A]) extends RdObject[A] {
+class CommonAncestor[A](private val one: RdObject[A], private val other: RdObject[A]) extends RdObject[A](null) { // todo: fixme with a deferred state
 
 	// determine it once and defer all RdObject methods to it
 	def commonAncestor: RdObject[A] = {
@@ -67,19 +71,28 @@ class CommonAncestor[A](private val one: RdObject[A], private val other: RdObjec
 		// can there be a fork in the history of the provided RDOs?
 		// since client RDOs apply tentative updates there shouldn't be any, apart from the common ancestor
 		// FIXME: might need to keep track of history from the last stable point
-		for (i <- one.getImmutableStates.reverse) {
-			for (j <- other.getImmutableStates.reverse) {
-				if (currentVersion(new AtomicObjectState[A](i)) == currentVersion(new AtomicObjectState[A](j))) {
-					val ancestor = new RdObject[A](new AtomicObjectState[A](i))
+		for (i <- one.state.log.asList.reverse) {
+			for (j <- other.state.log.asList.reverse) {
+//				if (currentVersion(new AtomicObjectState[A](i)) == currentVersion(new AtomicObjectState[A](j))) {
+				println()
+				println("I:" + i)
+				println("J:" + j)
+
+				if (i.stateResult == j.stateResult){
+					val indexOfI = one.state.log.asList.indexOf(i)
+					val logRecordsUpToI = one.state.log.asList.slice(0, indexOfI+1)
+					val logUpToI = new Log[A](logRecordsUpToI)
+					val ancestor = new RdObject[A](AtomicObjectState.fromLog(logUpToI))
 					return ancestor
 				}
 			}
 		}
-		return new RdObject[A]()
+		throw new RuntimeException("HENK IS DEAD")
+//		return new RdObject[A]()
 	}
 
 	override def toString: String = {
-		commonAncestor.getImmutableStates.toString()
+		commonAncestor.state.toString
 	}
 
 
