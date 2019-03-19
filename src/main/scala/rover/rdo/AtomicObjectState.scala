@@ -1,23 +1,31 @@
 package rover.rdo
 
-import rover.rdo.client.{Log, LogRecord}
+import rover.rdo.client.{StateLog, LogRecord}
 
-// TODO: make ctor private
-class AtomicObjectState[A](private val value: A, private[rdo] val log: Log[A]) extends ObjectState {
+trait AtomicObjectState[A] extends ObjectState {
 	type Op = A => A
 
-	def immutableState: A = value
+	def immutableState: A
+
+	protected[rdo] def log: StateLog[A]
+	def applyOp(operation: Op): AtomicObjectState[A]
+
+	override def equals(obj: Any): Boolean
+}
+
+// TODO: make ctor private
+class BasicAtomicObjectState[A](val immutableState: A, protected[rdo] val log: StateLog[A]) extends AtomicObjectState[A] {
 
 	def applyOp(operation: Op): AtomicObjectState[A] = {
 		// Operation must apply itself to the state
 		// but we want the state to take in the operations
 		// so that the framework can record the op
-		val result = operation.apply(this.value)
+		val result = operation.apply(this.immutableState)
 
 		// Record the operation in the Log
-		val updatedLog = log.appended(LogRecord(value, operation, result))
+		val updatedLog = log.appended(LogRecord(immutableState, operation, result))
 
-		return new AtomicObjectState[A](result, updatedLog)
+		return new BasicAtomicObjectState[A](result, updatedLog)
 	}
 
 	override def equals(that: Any): Boolean = {
@@ -28,16 +36,16 @@ class AtomicObjectState[A](private val value: A, private[rdo] val log: Log[A]) e
 	}
 
 	override def toString: String = {
-		value.toString
+		immutableState.toString
 	}
 }
 
 object AtomicObjectState {
 	def initial[A](value: A): AtomicObjectState[A] = {
-		return new AtomicObjectState[A](value, Log.withInitialState(value))
+		return new BasicAtomicObjectState[A](value, StateLog.withInitialState(value))
 	}
 
-	def fromLog[A](log: Log[A]): AtomicObjectState[A] = {
-		return new AtomicObjectState[A](log.asList.last.stateResult, log)
+	def fromLog[A](log: StateLog[A]): AtomicObjectState[A] = {
+		return new BasicAtomicObjectState[A](log.asList.last.stateResult, log)
 	}
 }
