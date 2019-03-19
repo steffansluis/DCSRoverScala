@@ -19,6 +19,10 @@ class StateLog[A](private val logList: List[LogRecord[A]] = List()) {
 	def asList: List[LogRecord[A]] = {
 		return logList
 	}
+
+	def latestState : LogRecord[A] = {
+		return logList.last
+	}
 }
 
 object StateLog {
