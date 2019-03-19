@@ -28,24 +28,24 @@ class RdObject[A](var state: AtomicObjectState[A]) {
   * @param one Some RDO
   * @param other Some other RDO
   */
-class CommonAncestor[A](private val one: RdObject[A], private val other: RdObject[A]) extends RdObject[A](null) { // todo: fixme with a deferred state
+class CommonAncestor[A](private val one: AtomicObjectState[A], private val other: AtomicObjectState[A]) extends AtomicObjectState[A] { // todo: fixme with a deferred state
 
 	// determine it once and defer all RdObject methods to it
-	def commonAncestor: RdObject[A] = {
+	def commonAncestor: AtomicObjectState[A] = {
 		// determine here... & probably cache or is that not needed in scala? :S
 		// FIXME: currently we return just the atomic state..what about the outstanding operations?
-		for (i <- one.state.log.asList.reverse) {
-			for (j <- other.state.log.asList.reverse) {
+		for (i <- one.log.asList.reverse) {
+			for (j <- other.log.asList.reverse) {
 
 				println()
 				println("I:" + i)
 				println("J:" + j)
 
 				if (i.stateResult == j.stateResult){
-					val indexOfI = one.state.log.asList.indexOf(i)
-					val logRecordsUpToI = one.state.log.asList.slice(0, indexOfI+1)
-					val logUpToI = new Log[A](logRecordsUpToI)
-					val ancestor = new RdObject[A](AtomicObjectState.fromLog(logUpToI))
+					val indexOfI = one.log.asList.indexOf(i)
+					val logRecordsUpToI = one.log.asList.slice(0, indexOfI+1)
+					val logUpToI = new StateLog[A](logRecordsUpToI)
+					val ancestor = AtomicObjectState.fromLog(logUpToI)
 					return ancestor
 				}
 			}
@@ -55,6 +55,28 @@ class CommonAncestor[A](private val one: RdObject[A], private val other: RdObjec
 	}
 
 	override def toString: String = {
-		commonAncestor.state.toString
+		commonAncestor.toString
+	}
+
+	override def immutableState: A = {
+		commonAncestor.immutableState
+	}
+
+	override protected[rdo] def log: StateLog[A] = {
+		commonAncestor.log
+	}
+
+	override def applyOp(operation: Op): AtomicObjectState[A] = {
+		return commonAncestor.applyOp(operation)
+	}
+}
+
+object CommonAncestor {
+	def from[A](serverVersion: RdObject[A], incomingVersion: RdObject[A]): CommonAncestor[A] = {
+		return new CommonAncestor[A](serverVersion.state, incomingVersion.state)
+	}
+
+	def from[A](serverVersion: AtomicObjectState[A], incomingVersion: AtomicObjectState[A]): CommonAncestor[A] = {
+		return new CommonAncestor[A](serverVersion, incomingVersion)
 	}
 }

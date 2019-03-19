@@ -1,6 +1,6 @@
 package votingapp
 
-import rover.rdo.AtomicObjectState
+import rover.rdo.{AtomicObjectState, ConflictedState}
 import rover.rdo.client.{CommonAncestor, RdObject}
 
 class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {
@@ -89,7 +89,7 @@ object henk {
 		println("Poll:" + poll)
 		println("Poll2:" + poll2)
 
-		val parent = new CommonAncestor[Votes](poll, poll2)
+		val parent = CommonAncestor.from(poll, poll2)
 		println("Parent:" + parent.toString)
 		println(poll.result.winner)
 		println("Immutable state:" + poll.toString)
