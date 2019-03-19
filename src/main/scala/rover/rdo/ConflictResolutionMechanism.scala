@@ -1,6 +1,6 @@
 package rover.rdo
 
-import rover.rdo.client.{CommonAncestor, RdObject}
+import rover.rdo.client.{CommonAncestor, DiffWithAncestor, RdObject}
 
 trait ConflictResolutionMechanism[A] {
 	def resolveConflict(conflictedState: ConflictedState[A]): AtomicObjectState[A]
@@ -9,6 +9,10 @@ trait ConflictResolutionMechanism[A] {
 class ConflictedState[A] private (val serverVersion: AtomicObjectState[A], val incomingVersion: AtomicObjectState[A]) {
 	def commonAncestor: CommonAncestor[A] = {
 		return new CommonAncestor[A](serverVersion, incomingVersion)
+	}
+	def diffWithAncestor(atomicObjectState: AtomicObjectState[A]): DiffWithAncestor[A] = {
+		val commonAncestor = this.commonAncestor.commonAncestor
+		return new DiffWithAncestor[A](atomicObjectState, commonAncestor)
 	}
 }
 
