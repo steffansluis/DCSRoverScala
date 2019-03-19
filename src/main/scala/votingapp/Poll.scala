@@ -1,7 +1,8 @@
 package votingapp
 
 import rover.rdo.{AtomicObjectState, ConflictedState}
-import rover.rdo.client.{CommonAncestor, RdObject}
+import rover.rdo.client.{CommonAncestor, DiffWithAncestor, RdObject}
+
 
 class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {
 
@@ -94,6 +95,36 @@ object henk {
 		println(poll.result.winner)
 		println("Immutable state:" + poll.toString)
 
+
+	}
+}
+
+object sjaak {
+	def main(args: Array[String]): Unit = {
+		val poll = Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
+		println(poll)
+
+		poll.cast(PollChoice("No"))
+
+		val poll2 = Poll.copyOf(poll)
+
+		println("\ncasting votes:")
+
+		poll.cast(PollChoice("Yes"))
+		poll.cast(PollChoice("Yes"))
+		poll.cast(PollChoice("No"))
+
+		poll2.cast(PollChoice("No"))
+		poll2.cast(PollChoice("No"))
+		println("Poll:" + poll)
+		println("Poll2:" + poll2)
+
+		val parent = CommonAncestor.from(poll, poll2)
+		val ancestor = parent.commonAncestor
+		println("Parent:" + parent.toString)
+
+		val diff = new DiffWithAncestor[Votes](poll.state, ancestor)
+		println("Diff: " + diff.toString)
 
 	}
 }

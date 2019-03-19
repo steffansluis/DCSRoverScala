@@ -91,3 +91,22 @@ object CommonAncestor {
 		return new CommonAncestor[A](serverVersion, incomingVersion)
 	}
 }
+
+class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val ancestor: AtomicObjectState[A]) {
+
+	def diffWithAncestor: List[LogRecord[A]] = {
+		for(i <- child.log.asList) {
+			if(i.stateResult == ancestor.log.latestState.stateResult) {
+				val indexOfI = child.log.asList.indexOf(i)
+				val logRecordsUpToI = child.log.asList.slice(indexOfI + 1, child.log.asList.size - 1)
+				return logRecordsUpToI
+			}
+		}
+		throw new RuntimeException("Failed to determine difference with this ancestor")
+	}
+
+	override def toString: String = {
+		"DiffWithAncestor{ \n	" + diffWithAncestor.mkString("\n	") + "\n}"
+	}
+
+}
