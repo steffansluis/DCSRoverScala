@@ -27,6 +27,10 @@ class AtomicObjectState[A](private val value: A, private[rdo] val log: Log[A]) e
 		}
 	}
 
+	def getLog: Log[A] = {
+		return this.log
+	}
+
 	override def toString: String = {
 		value.toString
 	}
@@ -35,6 +39,10 @@ class AtomicObjectState[A](private val value: A, private[rdo] val log: Log[A]) e
 object AtomicObjectState {
 	def initial[A](value: A): AtomicObjectState[A] = {
 		return new AtomicObjectState[A](value, Log.withInitialState(value))
+	}
+
+	def initial[A](value: List[A]): AtomicObjectState[A] = {
+		return new AtomicObjectState[A](value.last, Log.withInitialStates(value.map(v => LogRecord[A](v, null, v))))
 	}
 
 	def fromLog[A](log: Log[A]): AtomicObjectState[A] = {
