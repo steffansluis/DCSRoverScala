@@ -1,7 +1,7 @@
 package votingapp
 
-import rover.rdo.{AtomicObjectState, ConflictedState}
-import rover.rdo.client.{CommonAncestor, DiffWithAncestor, RdObject}
+import rover.rdo.{AtomicObjectState, CommonAncestor}
+import rover.rdo.client.{DiffWithAncestor, RdObject}
 
 
 class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {
@@ -94,8 +94,6 @@ object henk {
 		println("Parent:" + parent.toString)
 		println(poll.result.winner)
 		println("Immutable state:" + poll.toString)
-
-
 	}
 }
 
@@ -125,6 +123,5 @@ object sjaak {
 
 		val diff = new DiffWithAncestor[Votes](poll.state, ancestor)
 		println("Diff: " + diff.toString)
-
 	}
 }
