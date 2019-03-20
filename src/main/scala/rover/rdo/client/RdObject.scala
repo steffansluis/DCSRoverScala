@@ -4,10 +4,10 @@ import rover.rdo.AtomicObjectState
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.async.Async.{async}
-import scala.concurrent.{Promise}
+import scala.concurrent.{Promise, Future}
 
 //FIXME: use hashes instead of Longs/Strings?
-abstract class RdObject[A](var state: AtomicObjectState[A]) {
+class RdObject[A](var state: AtomicObjectState[A]) {
 
 	// TODO: "is up to date" or "version" methods
 
@@ -16,7 +16,11 @@ abstract class RdObject[A](var state: AtomicObjectState[A]) {
 //		onStateModified(state)
 	}
 
-	protected def onStateModified(oldState: AtomicObjectState[A]): Promise[Unit]
+	protected def onStateModified(oldState: AtomicObjectState[A]): Future[Unit] = {
+		async {
+
+		}
+	}
 
 	protected final def immutableState: A = {
 		return state.immutableState
@@ -36,8 +40,9 @@ abstract class RdObject[A](var state: AtomicObjectState[A]) {
   * @param other Some other RDO
   */
 class CommonAncestor[A](private val one: RdObject[A], private val other: RdObject[A]) extends RdObject[A](null) { // todo: fixme with a deferred state
-	override def onStateModified(oldState: AtomicObjectState[A]): Promise[Unit] = {
-		Promise() completeWith async { }
+	override def onStateModified(oldState: AtomicObjectState[A]): Future[Unit] = {
+//		Promise() completeWith async { }
+		async {}
 	}
 
 	// determine it once and defer all RdObject methods to it
