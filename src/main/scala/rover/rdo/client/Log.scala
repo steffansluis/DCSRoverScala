@@ -16,6 +16,11 @@ class Log[A](private val logList: List[LogRecord[A]] = List()) {
     return new Log[A](list)
   }
 
+  def concatenated(listOfRecords: List[LogRecord[A]]): Log[A] = {
+    val list = this.logList ++ listOfRecords
+    return new Log[A](list)
+  }
+
   def asList: List[LogRecord[A]] = {
     return logList
   }
@@ -29,5 +34,9 @@ object Log {
     */
     def withInitialState[A](a: A): Log[A] = {
         return new Log[A]().appended(LogRecord[A](a,null, a))
+    }
+
+    def withInitialStates[A](a: List[LogRecord[A]]): Log[A] = {
+        return new Log[A]().concatenated(a)
     }
 }
