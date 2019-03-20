@@ -6,7 +6,7 @@ trait ConflictResolutionMechanism[A] {
 	def resolveConflict(conflictedState: ConflictedState[A]): AtomicObjectState[A]
 }
 
-class ConflictedState[A] private (val serverVersion: AtomicObjectState[A], val incomingVersion: AtomicObjectState[A]) {
+class ConflictedState[A] (val serverVersion: AtomicObjectState[A], val incomingVersion: AtomicObjectState[A]) {
 	def commonAncestor: CommonAncestor[A] = {
 		return new CommonAncestor[A](serverVersion, incomingVersion)
 	}
