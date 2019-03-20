@@ -7,9 +7,9 @@ class ConflictedState[A] private (val serverVersion: AtomicObjectState[A], val i
 	def commonAncestor: CommonAncestor[A] = {
 		return new CommonAncestor[A](serverVersion, incomingVersion)
 	}
-	def diffWithAncestor(atomicObjectState: AtomicObjectState[A]): DiffWithAncestor[A] = {
-		val commonAncestor = this.commonAncestor.commonAncestor
-		return new DiffWithAncestor[A](atomicObjectState, commonAncestor)
+	def diffWithAncestor(childState: AtomicObjectState[A]): DiffWithAncestor[A] = {
+		val commonAncestor = this.commonAncestor.state
+		return new DiffWithAncestor[A](childState, commonAncestor)
 	}
 }
 

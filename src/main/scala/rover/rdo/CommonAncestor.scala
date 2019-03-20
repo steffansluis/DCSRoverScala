@@ -13,7 +13,7 @@ import rover.rdo.client.{RdObject, StateLog}
 class CommonAncestor[A](private val one: AtomicObjectState[A], private val other: AtomicObjectState[A]) extends AtomicObjectState[A] { // todo: fixme with a deferred state
 
 	// determine it once and defer all RdObject methods to it
-	def commonAncestor: AtomicObjectState[A] = {
+	def state: AtomicObjectState[A] = {
 		// determine here... & probably cache or is that not needed in scala? :S
 		// FIXME: currently we return just the atomic state..what about the outstanding operations?
 		for (i <- one.log.asList.reverse) {
@@ -37,19 +37,19 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 	}
 
 	override def toString: String = {
-		commonAncestor.toString
+		state.toString
 	}
 
 	override def immutableState: A = {
-		commonAncestor.immutableState
+		state.immutableState
 	}
 
 	override protected[rdo] def log: StateLog[A] = {
-		commonAncestor.log
+		state.log
 	}
 
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
-		return commonAncestor.applyOp(operation)
+		return state.applyOp(operation)
 	}
 }
 

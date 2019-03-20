@@ -118,7 +118,7 @@ object sjaak {
 		println("Poll2:" + poll2)
 
 		val parent = CommonAncestor.from(poll, poll2)
-		val ancestor = parent.commonAncestor
+		val ancestor = parent.state
 		println("Parent:" + parent.toString)
 
 		val diff = new DiffWithAncestor[Votes](poll.state, ancestor)
