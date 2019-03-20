@@ -9,8 +9,7 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.{GET, Path}
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.impl.client.{DefaultHttpClient, HttpClients}
-import org.apache.http.message.BasicNameValuePair
+import org.apache.http.impl.client.HttpClients
 import votingapp.{Poll, PollChoice, Votes}
 
 
@@ -38,15 +37,12 @@ class Server[A](private val mapToStates: Map[String, AtomicObjectState[A]],
     override def exportRdOwithState(stateId: String): Unit = {
         val stateToBeExported = mapToStates(stateId)
         val exportToUser = mapToUsers(stateId)
-        val stateAsJson = new Gson().toJson(stateToBeExported)
+        val stateAsJson = stateToBeExported.serializeSelf
 
         val post = new HttpPost("http://localhost:8080/posttest")
-        val nameValuePairs = new util.ArrayList[BasicNameValuePair]()
-        nameValuePairs.add(new BasicNameValuePair("JSON", stateAsJson))
-        post.setEntity(new UrlEncodedFormEntity(nameValuePairs, "utf-8"))
+        post.setEntity(new UrlEncodedFormEntity(stateAsJson, "utf-8"))
 
         // send the post request
-//        val clientSocket = new Socket("localhost", 8080)
         val httpClient = HttpClients.createDefault()
         val httpResponse = httpClient.execute(post)
         println("--- HEADERS ---")
@@ -72,33 +68,29 @@ object Server{
 
 }
 
-import rover.rdo.server.Server
-@Path("server")
-class ServerEndpoint[A] {
-
-    @Path("health")
-    @GET
-    def checkHealth(): Response ={
-        if(Server.isAlive){
-            return Response.noContent().build()
-        }
-        else{
-            return Response.serverError().build()
-        }
-    }
-}
+//import rover.rdo.server.Server
+//@Path("server")
+//class ServerEndpoint[A] {
+//
+//    @Path("health")
+//    @GET
+//    def checkHealth(): Response ={
+//        if(Server.isAlive){
+//            return Response.noContent().build()
+//        }
+//        else{
+//            return Response.serverError().build()
+//        }
+//    }
+//}
 
 object henk{
     def main(args: Array[String]): Unit ={
-//        val poll = Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
-//        val users = new User("123", "foo")
-//        val Server = new Server[Votes](Map("123"-> poll.state), Map("123" -> users))
-//        Server.init
-//        Server.exportRdOwithState("123")
+        val poll = Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
+        val users = new User("123", "foo")
+        val server = new Server[Votes](Map("123"-> poll.state), Map("123" -> users))
         Server.init
-        while (true){
-
-        }
+        server.exportRdOwithState("123")
 
 
     }

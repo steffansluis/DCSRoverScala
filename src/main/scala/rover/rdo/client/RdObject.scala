@@ -1,5 +1,8 @@
 package rover.rdo.client
 
+import java.util
+
+import org.apache.http.message.BasicNameValuePair
 import rover.rdo.AtomicObjectState
 
 //FIXME: use hashes instead of Longs/Strings?
@@ -69,6 +72,8 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
 		return commonAncestor.applyOp(operation)
 	}
+
+	override def serializeSelf: util.ArrayList[BasicNameValuePair] = ???
 }
 
 object CommonAncestor {
