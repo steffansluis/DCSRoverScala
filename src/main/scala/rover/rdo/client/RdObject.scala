@@ -21,7 +21,7 @@ class RdObject[A](var state: AtomicObjectState[A]) {
 }
 class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val ancestor: AtomicObjectState[A]) {
 
-	def diffWithAncestor: List[LogRecord[A]] = {
+	def asList: List[LogRecord[A]] = {
 		for(i <- child.log.asList) {
 			if(i.stateResult == ancestor.log.latestState.stateResult) {
 				val indexOfI = child.log.asList.indexOf(i)
@@ -33,7 +33,7 @@ class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val a
 	}
 
 	override def toString: String = {
-		"DiffWithAncestor{ \n	" + diffWithAncestor.mkString("\n	") + "\n}"
+		"DiffWithAncestor{ \n	" + asList.mkString("\n	") + "\n}"
 	}
 
 }

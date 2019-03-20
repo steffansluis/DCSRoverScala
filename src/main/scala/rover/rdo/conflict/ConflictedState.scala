@@ -7,6 +7,25 @@ class ConflictedState[A] private (val serverVersion: AtomicObjectState[A], val i
 	def commonAncestor: CommonAncestor[A] = {
 		return new CommonAncestor[A](serverVersion, incomingVersion)
 	}
+
+	/**
+	  * The changes that were made in the "incoming" version since
+	  * the common ancestor
+	  * @return The changes from ancestor to "incoming"
+	  */
+	def changesIncomingRelativeToCommonAncestor: DiffWithAncestor[A] = {
+		return diffWithAncestor(incomingVersion)
+	}
+
+	/**
+	  * The changes that are in the server's version relative to the
+	  * common ancestor
+	  * @return The changes from ancestor to "server"
+	  */
+	def changesOnServerRelativeToCommonAncestor: DiffWithAncestor[A] = {
+		return diffWithAncestor(serverVersion)
+	}
+
 	def diffWithAncestor(childState: AtomicObjectState[A]): DiffWithAncestor[A] = {
 		val commonAncestor = this.commonAncestor.state
 		return new DiffWithAncestor[A](childState, commonAncestor)
