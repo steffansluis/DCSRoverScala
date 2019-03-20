@@ -1,6 +1,10 @@
 package rover.rdo
 
-import rover.rdo.client.{StateLog, LogRecord}
+import java.util
+
+import com.google.gson.Gson
+import org.apache.http.message.BasicNameValuePair
+import rover.rdo.client.{LogRecord, StateLog}
 
 trait AtomicObjectState[A] extends ObjectState {
 	type Op = A => A
@@ -9,6 +13,8 @@ trait AtomicObjectState[A] extends ObjectState {
 
 	protected[rdo] def log: StateLog[A]
 	def applyOp(operation: Op): AtomicObjectState[A]
+
+	def serializeSelf: util.ArrayList[BasicNameValuePair]
 
 	override def equals(obj: Any): Boolean
 }
@@ -37,6 +43,13 @@ class BasicAtomicObjectState[A](val immutableState: A, protected[rdo] val log: S
 
 	override def toString: String = {
 		immutableState.toString
+	}
+
+	override def serializeSelf: util.ArrayList[BasicNameValuePair] = {
+		val logAsJson = new Gson().toJson(this.log)
+		val logNameValuePair = new util.ArrayList[BasicNameValuePair]()
+		logNameValuePair.add(new BasicNameValuePair("JSON", logAsJson))
+		return logNameValuePair
 	}
 }
 
