@@ -1,7 +1,8 @@
 package votingapp
 
-import rover.rdo.{AtomicObjectState, CommonAncestor}
+import rover.rdo.CommonAncestor
 import rover.rdo.client.{DiffWithAncestor, RdObject}
+import rover.rdo.state.AtomicObjectState
 
 
 class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {

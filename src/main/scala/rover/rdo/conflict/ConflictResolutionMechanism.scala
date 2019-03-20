@@ -1,10 +1,11 @@
 package rover.rdo.conflict
 
-import rover.rdo.AtomicObjectState
+import rover.rdo.state.AtomicObjectState
 
 /**
   * An interface for any mechanism that can resolve
   * a state conflict
+ *
   * @tparam A The state implementation type
   */
 trait ConflictResolutionMechanism[A] {

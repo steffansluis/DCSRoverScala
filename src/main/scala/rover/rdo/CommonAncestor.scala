@@ -1,6 +1,7 @@
 package rover.rdo
 
-import rover.rdo.client.{RdObject, StateLog}
+import rover.rdo.client.RdObject
+import rover.rdo.state.{AtomicObjectState, StateLog}
 
 /**
   * Encapsulates the concept of a "common ancestor" RDO. That is, given two

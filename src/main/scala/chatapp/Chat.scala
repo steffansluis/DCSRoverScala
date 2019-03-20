@@ -1,7 +1,7 @@
 package chatapp
 
-import rover.rdo.AtomicObjectState
 import rover.rdo.client.RdObject
+import rover.rdo.state.AtomicObjectState
 
 // FIXME: ensure messages can be read, but not modified or reassigned...
 // FIXME: after state & rd object impl change

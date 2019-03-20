@@ -1,6 +1,6 @@
-package rover.rdo
+package rover.rdo.state
 
-import rover.rdo.client.{StateLog, LogRecord}
+import rover.rdo.ObjectState
 
 trait AtomicObjectState[A] extends ObjectState {
 	type Op = A => A

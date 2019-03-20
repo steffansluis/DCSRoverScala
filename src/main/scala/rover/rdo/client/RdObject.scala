@@ -1,6 +1,6 @@
 package rover.rdo.client
 
-import rover.rdo.AtomicObjectState
+import rover.rdo.state.{AtomicObjectState, LogRecord}
 
 //FIXME: use hashes instead of Longs/Strings?
 class RdObject[A](var state: AtomicObjectState[A]) {

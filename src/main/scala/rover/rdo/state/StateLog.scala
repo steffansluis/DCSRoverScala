@@ -1,6 +1,4 @@
-package rover.rdo.client
-
-import rover.rdo.AtomicObjectState
+package rover.rdo.state
 
 case class LogRecord[A](stateFrom: A, op: AtomicObjectState[A]#Op, stateResult: A) {
 }
