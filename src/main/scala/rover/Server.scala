@@ -3,10 +3,12 @@ package rover
 import rover.rdo.AtomicObjectState
 import rover.rdo.client.{CommonAncestor, RdObject}
 
-class Server[C, A]( private val address: String,
-                   private val mapToClients: Map[C, Client[C, A]], private var mapToStates: Map[String, AtomicObjectState[A]]) {
 
-  val credentials = null
+class Server[C, A](private val address: String, private val mapToClients: Map[Session[C, A]#Identifier, Client[C, A]],
+                   private var mapToStates: Map[String, AtomicObjectState[A]]) {
+
+  //FIXME: Does the server has its own creds? It merely keeps track of clients' creds
+//  val credentials = null
 
   // TODO: Determine what to do with this
   def clientFromCredentials(credentials: Session[C,A]#Identifier): Client[C, A] = {
@@ -17,12 +19,12 @@ class Server[C, A]( private val address: String,
     new Session[C, A](credentials, this, clientFromCredentials(identifier))
   }
 
-  def deliveredState(stateId: String, atomicState: AtomicObjectState[A]): Unit ={
-    this.mapToStates = this.mapToStates + (stateId -> atomicState)
-  }
-
   def getAtomicStateWithId(stateId: String): AtomicObjectState[A] = {
     return mapToStates(stateId)
+  }
+
+  def deliveredState(stateId: String, atomicState: AtomicObjectState[A]): Unit ={
+    this.mapToStates = this.mapToStates + (stateId -> atomicState)
   }
 
   def receivedState(stateId: String, state: AtomicObjectState[A]): Unit ={
@@ -38,6 +40,10 @@ class Server[C, A]( private val address: String,
 
 object Server {
   def fromAddress[C, A](address: String): Server[C, A] = {
-    return new Server[C, A](address, Map[C, Client[C,A]](), Map[String, AtomicObjectState[A]]())
+    return new Server[C, A](address, Map[Session[C, A]#Identifier, Client[C,A]](), Map[String, AtomicObjectState[A]]())
+  }
+
+  def getMapOfServer[C, A](server: Server[C, A]): Map[String, AtomicObjectState[A]] ={
+    return server.mapToStates
   }
 }
