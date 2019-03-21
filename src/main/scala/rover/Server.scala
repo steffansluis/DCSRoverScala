@@ -3,15 +3,18 @@ package rover
 import rover.rdo.AtomicObjectState
 import rover.rdo.client.{CommonAncestor, RdObject}
 
-class Server[C, A](identifier: Session[C, A]#Identifier, private val address: String,
+class Server[C, A]( private val address: String,
                    private val mapToClients: Map[C, Client[C, A]], private var mapToStates: Map[String, AtomicObjectState[A]]) {
+
+  val credentials = null
+
   // TODO: Determine what to do with this
-  def clientFromCredentials(credentials: C): Client[C, A] = {
+  def clientFromCredentials(credentials: Session[C,A]#Identifier): Client[C, A] = {
     new Client[C, A](this.address, credentials, Map[String, AtomicObjectState[A]]())
   }
 
-  def createSession(credentials: C): Session[C, A] = {
-    new Session[C, A](credentials, this, clientFromCredentials(credentials))
+  def createSession(credentials: C, identifier: Session[C,A]#Identifier): Session[C, A] = {
+    new Session[C, A](credentials, this, clientFromCredentials(identifier))
   }
 
   def deliveredState(stateId: String, atomicState: AtomicObjectState[A]): Unit ={
@@ -35,6 +38,6 @@ class Server[C, A](identifier: Session[C, A]#Identifier, private val address: St
 
 object Server {
   def fromAddress[C, A](address: String): Server[C, A] = {
-    return new Server[C, A](null, address, Map[C, Client[C,A]](), Map[String, AtomicObjectState[A]]())
+    return new Server[C, A](address, Map[C, Client[C,A]](), Map[String, AtomicObjectState[A]]())
   }
 }

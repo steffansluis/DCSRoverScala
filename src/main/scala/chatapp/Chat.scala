@@ -32,7 +32,7 @@ class ChatMessage(val body: String,
 
 // FIXME: ensure messages can be read, but not modified or reassigned...
 // FIXME: after state & rd object impl change
-class Chat(_onStateModified: Chat#Updater, initialState: AtomicObjectState[List[ChatMessage]] = AtomicObjectState.initial(List[ChatMessage]())) extends RdObject[List[ChatMessage]](AtomicObjectState.initial(List[ChatMessage]())) {
+class Chat(_onStateModified: Chat#Updater, initialState: AtomicObjectState[List[ChatMessage]]) extends RdObject[List[ChatMessage]](AtomicObjectState.initial(List[ChatMessage]())) {
 //	type State = List[ChatMessage]
 	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
 
@@ -60,12 +60,13 @@ object Chat {
 	}
 }
 
-class ChatServer() extends Server[OAuth2Credentials](null) {
+//class ChatServer extends Server[OAuth2Credentials, List[ChatMessage]] {
+//
+//}
 
-}
-
-class ChatClient(serverAddress: String) extends Client.OAuth2Client(serverAddress, (credentials: OAuth2Credentials) => credentials.accessToken) {
-	var session: Session[OAuth2Credentials] = null
+class ChatClient(serverAddress: String) extends
+	Client.OAuth2Client[List[ChatMessage]](serverAddress, (credentials: OAuth2Credentials) => credentials.accessToken, Map[String, AtomicObjectState[List[ChatMessage]]]()) {
+	var session: Session[OAuth2Credentials, List[ChatMessage]] = null
 	var user: User = null
 	var chat: Chat = null;
 
@@ -88,7 +89,7 @@ class ChatClient(serverAddress: String) extends Client.OAuth2Client(serverAddres
 			val credentials = new OAuth2Credentials("fake credentials",  "fake credentials")
 			this.user = user
 			session = createSession(credentials)
-			val rdo = await(session.importRDO[List[ChatMessage]]("chat"))
+			val rdo = new RdObject[List[ChatMessage]](await(session.importRDO("chat")))
 			chat = Chat.fromRDO(rdo, updater)
 		}
 	}

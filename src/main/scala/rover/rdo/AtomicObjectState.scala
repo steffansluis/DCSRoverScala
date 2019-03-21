@@ -41,9 +41,9 @@ object AtomicObjectState {
 		return new AtomicObjectState[A](value, Log.withInitialState(value))
 	}
 
-	def initial[A](value: List[A]): AtomicObjectState[A] = {
-		return new AtomicObjectState[A](value.last, Log.withInitialStates(value.map(v => LogRecord[A](v, null, v))))
-	}
+//	def initial[A](value: List[A]): AtomicObjectState[A] = {
+//		return new AtomicObjectState[A](value.last, Log.withInitialStates(value.map(v => LogRecord[A](v, null, v))))
+//	}
 
 	def fromLog[A](log: Log[A]): AtomicObjectState[A] = {
 		return new AtomicObjectState[A](log.asList.last.stateResult, log)
