@@ -2,15 +2,8 @@ package rover
 
 import rover.rdo.AtomicObjectState
 
-//class Client[C](serverAddress: String, identifier: Session[C]#Identifier) {
-//  val server = Server.fromAddress[C](serverAddress)
-//
-//  def createSession(credentials: C) = {
-//    server.createSession(credentials)
-//  }
-//}
-
-class Client[C, A](private val serverAddress: String, private val identifier: Session[C, A]#Identifier, private var mapToStates: Map[String, AtomicObjectState[A]]){
+class Client[C, A](private val serverAddress: String, private val identifier: Session[C, A]#Identifier,
+                   private var mapToStates: Map[String, AtomicObjectState[A]]){
 
   val server = Server.fromAddress[C,A](serverAddress)
   def createSession(credentials: C): Session[C, A] = {

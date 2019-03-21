@@ -14,9 +14,7 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
   // TODO: Move this to the proper place
   type ObjectId = Id
 
-//  val server: Server[C] = null
-//  val client: Client[C] = null
-
+  
   // TODO: Implement errors
   def importRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
     async{
