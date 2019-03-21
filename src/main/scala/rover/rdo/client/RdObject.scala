@@ -19,6 +19,11 @@ class RdObject[A](var state: AtomicObjectState[A]) {
 //		onStateModified(state)
 	}
 
+  protected final def modifyStateWithUpdate(op: AtomicObjectState[A]#Op): Unit = {
+		modifyState(op)
+		onStateModified(state)
+	}
+
 	protected def onStateModified(oldState: AtomicObjectState[A]): Future[Unit] = {
 		async {
 

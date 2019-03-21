@@ -32,14 +32,14 @@ class ChatMessage(val body: String,
 
 // FIXME: ensure messages can be read, but not modified or reassigned...
 // FIXME: after state & rd object impl change
-class Chat(_onStateModified: Chat#Updater, initialState: AtomicObjectState[List[ChatMessage]] = AtomicObjectState.initial(List[ChatMessage]())) extends RdObject[List[ChatMessage]](AtomicObjectState.initial(List[ChatMessage]())) {
+class Chat(_onStateModified: Chat#Updater, initialState: AtomicObjectState[List[ChatMessage]] ) extends RdObject[List[ChatMessage]](initialState) {
 //	type State = List[ChatMessage]
 	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
 
-	def send(message: ChatMessage): Promise[Unit]= {
+	def send(message: ChatMessage): Future[Unit]= {
 		val op: AtomicObjectState[List[ChatMessage]]#Op = s => s :+ message
 
-		Promise() completeWith async {
+		async {
 			modifyState(op)
 		}
 	}
@@ -93,25 +93,45 @@ class ChatClient(serverAddress: String) extends Client.OAuth2Client(serverAddres
 		}
 	}
 
+	def send(message: String): Future[Unit] = {
+//		println(s"Sending message from client: $message")
+		async {
+			await(chat.send(new ChatMessage(message, user)))
+			await(session.exportRDO("chat", chat))
+//			updater(chat.state)
+		}
+	}
+
+	def updateLoop(): Future[Unit] = {
+		async {
+			while(true) {
+				val serverState = await(session.importRDO("chat")).asInstanceOf[RdObject[List[ChatMessage]]]
+				chat = Chat.fromRDO(serverState, updater)
+				updater(chat.state)
+				Thread.sleep(500)
+			}
+		}
+	}
+
 	def render(): Future[Unit] = {
 //		val chat = new Chat(updater)
 		println("  Welcome to Rover Chat!")
 		print((1 to ChatClient.SIZE).map(i => "\n").mkString(""))
 
 		// Simulate conversation
-		async {
-			Thread.sleep(3000)
-			await(chat.send(new ChatMessage("Hey man!", User.Giannis)).future)
-			updater(chat.state)
-
-			Thread.sleep(3000)
-			await(chat.send(new ChatMessage("How's it going?", User.Giannis)).future)
-			updater(chat.state)
-
-			Thread.sleep(10000)
-			await(chat.send(new ChatMessage("Yea man I'm good", User.Giannis)).future)
-			updater(chat.state)
-		}
+//		async {
+//			Thread.sleep(3000)
+//			await(chat.send(new ChatMessage("Hey man!", User.Giannis)))
+////			updater(chat.state)
+//
+//			Thread.sleep(3000)
+//			await(chat.send(new ChatMessage("How's it going?", User.Giannis)))
+////			updater(chat.state)
+//
+//			Thread.sleep(10000)
+//			await(chat.send(new ChatMessage("Yea man I'm good", User.Giannis)))
+////			updater(chat.state)
+//		}
 
 		val reader = () => {
 			print("> ")
@@ -119,9 +139,12 @@ class ChatClient(serverAddress: String) extends Client.OAuth2Client(serverAddres
 			s
 		}
 		val executor = (input: String) => {
-		async {
-			val p = chat.send(new ChatMessage(input, user))
-			await(p.future)
+			async {
+//				val serverState = await(session.importRDO("chat")).asInstanceOf[RdObject[List[ChatMessage]]]
+//				chat = Chat.fromRDO(serverState, updater)
+
+				await(send(input))
+
 				// This clears the input line
 				print(s"${REPL.UP}${REPL.ERASE_LINE_AFTER}")
 				chat.state.immutableState.takeRight(ChatClient.SIZE).map(m => s"${m.toString()}").mkString("\n")
@@ -129,6 +152,8 @@ class ChatClient(serverAddress: String) extends Client.OAuth2Client(serverAddres
 		}
 		val repl: REPL[String] = new REPL(reader, executor, printer)
 //		Await.result(repl.loop(), Duration.Inf)
+//		updater(chat.state)
+		updateLoop() // TODO: Memory leak
 		repl.loop()
 	}
 
@@ -137,9 +162,28 @@ class ChatClient(serverAddress: String) extends Client.OAuth2Client(serverAddres
 object ChatClient {
 	val SIZE = 10
 
+	def bot(serverAddress: String): Unit = {
+		val client = new ChatClient(serverAddress)
+		async {
+			await(client.login(User.Giannis))
+			client.updateLoop()
+
+			Thread.sleep(5000)
+			await(client.send("Hey man!"))
+
+			Thread.sleep(3000)
+			await(client.send("How's it going?"))
+
+			Thread.sleep(10000)
+			await(client.send("Yea man I'm good"))
+		}
+
+	}
+
 	def main(args: Array[String]): Unit = {
 		val serverAddress = "bla"
 		val client = new ChatClient(serverAddress)
+		bot(serverAddress) // Start bot without await
 		val f = async {
 			await(client.login(User.Steffan))
 			await(client.render())

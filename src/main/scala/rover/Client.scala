@@ -6,6 +6,10 @@ class Client[C](serverAddress: String, identifier: Session[C]#Identifier) {
   def createSession(credentials: C) = {
     server.createSession(credentials)
   }
+
+  def invalidate[T](objectId: Session[T]#ObjectId) = {
+    println(s"Invalidated $objectId")
+  }
 }
 
 
