@@ -1,5 +1,6 @@
 package rover
 
+import chatapp.ChatServer
 import rover.rdo.AtomicObjectState
 import rover.rdo.client.RdObject
 
@@ -19,7 +20,7 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
   def importRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
     async{
       if (objectId == "chat"){
-        AtomicObjectState.initial[A](List[Any]().asInstanceOf[A])
+        ChatServer.CHAT_STATE.asInstanceOf[AtomicObjectState[A]]
       }
       else null
     }
@@ -32,7 +33,7 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
         val atomicState = server.getAtomicStateWithId(stateId)
         client.appendedState(stateId, atomicState)
       }
-      else null
+//      else null
     }
   }
   
