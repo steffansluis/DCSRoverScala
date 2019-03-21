@@ -18,6 +18,15 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
 //  val client: Client[C] = null
 
   // TODO: Implement errors
+  def importRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
+    async{
+      if (objectId == "chat"){
+        AtomicObjectState.initial[A](List[Any]().asInstanceOf[A])
+      }
+      else null
+    }
+  }
+
   def importRDOwithState[A](objectId: ObjectId, stateId: String): Future[Unit] = {
     // TODO: Hacks
     async {
