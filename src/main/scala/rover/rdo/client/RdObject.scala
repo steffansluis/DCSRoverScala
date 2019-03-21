@@ -23,12 +23,14 @@ class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val a
 
 	def asList: List[LogRecord[A]] = {
 		for(i <- child.log.asList) {
-			if(i.stateResult == ancestor.log.latestState.stateResult) {
+			if(i.parent == ancestor) {
+				// TODO: inefficient
 				val indexOfI = child.log.asList.indexOf(i)
-				val logRecordsUpToI = child.log.asList.slice(indexOfI + 1, child.log.asList.size - 1)
+				val logRecordsUpToI = child.log.asList.slice(indexOfI, child.log.asList.size - 1)
 				return logRecordsUpToI
 			}
 		}
+		
 		throw new RuntimeException("Failed to determine difference with this ancestor")
 	}
 

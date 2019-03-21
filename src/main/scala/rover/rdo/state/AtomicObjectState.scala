@@ -13,6 +13,17 @@ trait AtomicObjectState[A] extends ObjectState {
 	override def equals(obj: Any): Boolean
 }
 
+class InitialAtomicObjectState[A](identity: A) extends AtomicObjectState[A] {
+	override def immutableState: A = identity
+	
+	override protected def log: StateLog[A] = StateLog.empty
+	
+	override def applyOp(operation: Op): AtomicObjectState[A] = {
+		val resultingState = operation.apply(immutableState)
+		return new BasicAtomicObjectState[A](resultingState, log)
+	}
+}
+
 // TODO: make ctor private
 class BasicAtomicObjectState[A](val immutableState: A, protected[rdo] val log: StateLog[A]) extends AtomicObjectState[A] {
 
@@ -23,7 +34,7 @@ class BasicAtomicObjectState[A](val immutableState: A, protected[rdo] val log: S
 		val result = operation.apply(this.immutableState)
 
 		// Record the operation in the Log
-		val updatedLog = log.appended(LogRecord(immutableState, operation, result))
+		val updatedLog = log.appended(ApplicationOperationAppliedLogRecord(this, operation))
 
 		return new BasicAtomicObjectState[A](result, updatedLog)
 	}
@@ -45,7 +56,7 @@ object AtomicObjectState {
 		return new BasicAtomicObjectState[A](value, StateLog.withInitialState(value))
 	}
 
-	def fromLog[A](log: StateLog[A]): AtomicObjectState[A] = {
-		return new BasicAtomicObjectState[A](log.asList.last.stateResult, log)
-	}
+//	def fromLog[A](log: StateLog[A]): AtomicObjectState[A] = {
+//		return new BasicAtomicObjectState[A](log.asList.last.stateResult, log)
+//	}
 }

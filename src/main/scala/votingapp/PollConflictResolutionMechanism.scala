@@ -11,7 +11,7 @@ class PollConflictResolutionMechanism extends ConflictResolutionMechanism[Votes]
 		// when including some kind of identity to the vote, then can be more smarter here
 		var versionUnderResolution = conflictedState.serverVersion
 		for (change <- changesIncoming.asList) {
-			versionUnderResolution = versionUnderResolution.applyOp(change.op)
+			versionUnderResolution = versionUnderResolution.applyOp()
 		}
 
 		return versionUnderResolution

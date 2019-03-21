@@ -24,11 +24,8 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 				println("I:" + i)
 				println("J:" + j)
 
-				if (i.stateResult == j.stateResult){
-					val indexOfI = one.log.asList.indexOf(i)
-					val logRecordsUpToI = one.log.asList.slice(0, indexOfI+1)
-					val logUpToI = new StateLog[A](logRecordsUpToI)
-					val ancestor = AtomicObjectState.fromLog(logUpToI)
+				if (i.parent == j.parent){
+					val ancestor = i.parent
 					return ancestor
 				}
 			}
