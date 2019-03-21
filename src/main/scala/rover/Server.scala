@@ -4,6 +4,12 @@ import rover.rdo.AtomicObjectState
 import rover.rdo.client.{CommonAncestor, RdObject}
 
 
+/**
+  * Encapsulating the logic of the server.
+  * @param address of the server
+  * @param mapToClients, map to clients using as key the access token granted to the client
+  * @param mapToStates, map to stable (committed) states of RDOs
+*/
 class Server[C, A](private val address: String, private val mapToClients: Map[Session[C, A]#Identifier, Client[C, A]],
                    private var mapToStates: Map[String, AtomicObjectState[A]]) {
 

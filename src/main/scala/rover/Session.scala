@@ -14,7 +14,7 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
   // TODO: Move this to the proper place
   type ObjectId = Id
 
-  
+
   // TODO: Implement errors
   def importRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
     async{
@@ -30,7 +30,7 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
     async {
       if (objectId == "chat") {
         val atomicState = server.getAtomicStateWithId(stateId)
-        client.appended(stateId, atomicState)
+        client.appendedState(stateId, atomicState)
       }
       else null
     }
