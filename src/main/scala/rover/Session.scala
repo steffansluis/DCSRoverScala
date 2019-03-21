@@ -7,7 +7,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.async.Async.{async, await}
 
-class Session[C](credentials: C, server: Server[C], client: Client[C]) {
+class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) {
   type Id = String
   type Identifier = C => Id
 
@@ -18,16 +18,22 @@ class Session[C](credentials: C, server: Server[C], client: Client[C]) {
 //  val client: Client[C] = null
 
   // TODO: Implement errors
-  def importRDO[T](objectId: ObjectId): Future[RdObject[T]] = {
+  def importRDOwithState[A](objectId: ObjectId, stateId: String): Future[Unit] = {
     // TODO: Hacks
     async {
-      if (objectId == "chat") new RdObject[T]( AtomicObjectState.initial(List[Any]().asInstanceOf[T]) )
+      if (objectId == "chat") {
+        val atomicState = server.getAtomicStateWithId(stateId)
+        client.appended(stateId, atomicState)
+      }
       else null
     }
   }
   
-  def exportRDO[T](rdo: RdObject[T]): ObjectId = {
-    null
+  def exportRDOwithState[A](stateId: String): Future[Unit] = {
+    async{
+      val atomicState = client.getAtomicStateWithId(stateId)
+      server.receivedState(stateId, atomicState)
+    }
   }
 
 
@@ -35,13 +41,13 @@ class Session[C](credentials: C, server: Server[C], client: Client[C]) {
 
 object Session {
   // TODO: Probably better to make this mutable? It needs to be persistent in any case
-  private var _CACHE = Map[Session[Any]#Id, Session[Any]]()
+  private var _CACHE = Map[Session[Any, Any]#Id, Session[Any, Any]]()
 
-  def get[T](sessionId: Session[T]#Id): Session[T] = {
-    _CACHE.get(sessionId).asInstanceOf[Session[T]]
+  def get[C, A](sessionId: Session[C, A]#Id): Session[C, A] = {
+    _CACHE.get(sessionId).asInstanceOf[Session[C, A]]
   }
 
-  def set[T](sessionId: Session[T]#Id, session: Session[T]): Unit = {
-    _CACHE = _CACHE.updated(sessionId, session.asInstanceOf[Session[Any]])
+  def set[C, A](sessionId: Session[C, A]#Id, session: Session[C, A]): Unit = {
+    _CACHE = _CACHE.updated(sessionId, session.asInstanceOf[Session[Any, Any]])
   }
 }
