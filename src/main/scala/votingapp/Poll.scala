@@ -133,8 +133,8 @@ object sjaak {
 		val diffPoll2vsCommon = new DiffWithAncestor[Votes](poll2.state, ancestorState)
 		println("Diff poll2 and common ancestor: " + diffPoll2vsCommon.toString)
 
-		val pollMergeConflictResolutionMechanism = new PollConflictResolutionMechanism()
-		val resolved = pollMergeConflictResolutionMechanism.resolveConflict(ConflictedState.from(poll, poll2))
+		val pollMergeConflictResolutionMechanism = new PollConflictResolutionMechanism(ConflictedState.from(poll, poll2))
+		val resolved = pollMergeConflictResolutionMechanism.resolved
 		println(s"\n\nResolved: $resolved")
 
 		println(s"\n    log of resolved: ${resolved.asAtomicObjectState.log.asList.mkString("\n     ")}")

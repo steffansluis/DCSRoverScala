@@ -1,7 +1,7 @@
 package rover
 
 import rover.Client.OAuth2Credentials
-import rover.rdo.state.AtomicObjectState
+import rover.rdo.state.{AtomicObjectState, MergeOperation}
 import rover.rdo.client.RdObject
 import lol.http._
 import lol.json._
@@ -13,6 +13,7 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._
 import rover.rdo.CommonAncestor
+import rover.rdo.conflict.{ConflictedState, SimpleConflictResolutionMechanism}
 
 import scala.util.Try
 /**
@@ -40,18 +41,19 @@ class Server[C, A]( protected val address: String,
         return mapToStates(stateId)
   }
 
-  def deliveredState(stateId: String, atomicState: AtomicObjectState[A]): Unit ={
-    this.mapToStates = this.mapToStates + (stateId -> atomicState)
+  def deliveredState(stateId: String, incomingState: AtomicObjectState[A]): Unit ={
+    this.mapToStates = this.mapToStates + (stateId -> incomingState)
   }
 
-  def receivedState(stateId: String, state: AtomicObjectState[A]): Unit ={
-    val clientRDO = new RdObject[A](state)
-    val serverRDO = new RdObject[A](mapToStates(stateId))
-    val ancestor = CommonAncestor.from(serverRDO, clientRDO)
-    if (ancestor.state == serverRDO.state) deliveredState(stateId, state)
-    else {
-      //FiXME: Conflict resolution and history diff stuff
+  def receivedState(stateId: String, incomingState: AtomicObjectState[A]): Unit ={
+    val serverState = mapToStates(stateId)
+    if (serverState != incomingState){
+      val conflictedState = ConflictedState.from(serverState, incomingState)
+      val resolver = new SimpleConflictResolutionMechanism[A]
+      val resolved = resolver.resolveConflict(conflictedState)
+      this.mapToStates = this.mapToStates + (stateId -> resolved.asAtomicObjectState)
     }
+
   }
 }
 

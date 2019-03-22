@@ -33,6 +33,22 @@ trait ConflictResolutionMechanism[A] {
 	def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A]
 }
 
+class SimpleConflictResolutionMechanism[A] extends ConflictResolutionMechanism[A] {
+
+	override def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A] = {
+		val changesIncoming = conflictedState.changesIncomingRelativeToCommonAncestor
+		var versionToApplyOn = conflictedState.serverVersion
+
+		for (operationToApply <- changesIncoming.asList){
+			versionToApplyOn = operationToApply.appliedFunction(versionToApplyOn)
+		}
+
+		val resultingVersion = versionToApplyOn
+
+		return new ResolvedMerge[A](conflictedState, resultingVersion.immutableState, this)
+	}
+}
+
 case class ResolvedMerge[A](conflictedState: ConflictedState[A], resultingState: A, implicit val conflictResolutionMechanism: ConflictResolutionMechanism[A]) {
 	def asAtomicObjectState: AtomicObjectState[A] = {
 		val mergeOperationExectured = new MergeOperation[A](conflictedState.serverVersion, conflictedState.incomingVersion, conflictResolutionMechanism)
