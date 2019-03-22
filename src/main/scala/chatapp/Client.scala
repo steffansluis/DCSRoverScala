@@ -37,7 +37,7 @@ class ChatClient(serverAddress: String) extends
 			session = createSession(credentials)
 			val state = importRDO("chat")
 			val rdo = new RdObject[List[ChatMessage]](state)
-			chat = Chat.fromRDO(rdo, updater)
+			chat = Chat.fromRDO(rdo)
 //			println(s"Initial state: ${chat.state}")
 		}
 	}
