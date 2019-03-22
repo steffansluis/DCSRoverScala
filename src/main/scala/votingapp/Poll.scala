@@ -137,6 +137,6 @@ object sjaak {
 		val resolved = pollMergeConflictResolutionMechanism.resolveConflict(ConflictedState.from(poll, poll2))
 		println(s"\n\nResolved: $resolved")
 
-		println(s"\n    log of resolved: ${resolved.log.asList.mkString("\n     ")}")
+		println(s"\n    log of resolved: ${resolved.asAtomicObjectState.log.asList.mkString("\n     ")}")
 	}
 }

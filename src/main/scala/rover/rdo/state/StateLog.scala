@@ -56,9 +56,9 @@ case class MergeOperation[A](currentParent: AtomicObjectState[A], incomingParent
 
 	override def appliedFunction: AtomicObjectState[A] => AtomicObjectState[A] = (stateFrom: AtomicObjectState[A]) => {
 		val conflictedState = ConflictedState.from(stateFrom, incomingParent)
-		val resultingAtomicState = resolver.resolveConflict(conflictedState)
+		val resolved = resolver.resolveConflict(conflictedState)
 
-		resultingAtomicState
+		resolved.asAtomicObjectState
 	}
 
 //	override def rebase(newParent: AtomicObjectState[A]): LogRecord[A] = {

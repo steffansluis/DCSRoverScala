@@ -20,10 +20,7 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 		for (i <- one.log.asList.reverse) {
 			for (j <- other.log.asList.reverse) {
 
-//				println()
-//				println("I:" + i)
-//				println("J:" + j)
-
+				// FIXME: There can be more than one parent, if ancestor is in an "incoming change" of a merge, it will not find it
 				//noinspection ExistsEquals
 				if (i.parent.exists(parentI => j.parent.exists(parentJ => parentI == parentJ))) {
 					val ancestor = i.parent.get
@@ -31,7 +28,7 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 				}
 			}
 		}
-		// FIXME: typed exception, better error logs
+		// TODO: typed exception, better error logs
 		throw new RuntimeException("Failed to determine a common ancestor")
 	}
 
