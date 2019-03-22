@@ -2,6 +2,10 @@ package rover.rdo.client
 
 import rover.rdo.state.{AtomicObjectState, RecordedStateModification}
 
+import scala.async.Async.async
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 //FIXME: use hashes instead of Longs/Strings?
 class RdObject[A](var state: AtomicObjectState[A]) {
 
@@ -9,6 +13,13 @@ class RdObject[A](var state: AtomicObjectState[A]) {
 
 	protected final def modifyState(op: AtomicObjectState[A]#Op): Unit = {
 		state = state.applyOp(op)
+//		onStateModified(state)
+	}
+
+	protected def onStateModified(oldState: AtomicObjectState[A]): Future[Unit] = {
+		async {
+
+		}
 	}
 
 	protected final def immutableState: A = {
@@ -19,6 +30,7 @@ class RdObject[A](var state: AtomicObjectState[A]) {
 		state.toString
 	}
 }
+
 class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val ancestor: AtomicObjectState[A]) {
 
 	def asList: List[RecordedStateModification[A]] = {
@@ -28,6 +40,7 @@ class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val a
 				val indexOfI = child.log.asList.indexOf(i)
 				val logRecordsUpToI = child.log.asList.slice(indexOfI, child.log.asList.size)
 				return logRecordsUpToI
+
 			}
 		}
 		
@@ -37,5 +50,4 @@ class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val a
 	override def toString: String = {
 		"DiffWithAncestor{ \n	" + asList.mkString("\n	") + "\n}"
 	}
-
 }

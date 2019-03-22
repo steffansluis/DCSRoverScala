@@ -3,67 +3,40 @@ package chatapp
 import rover.rdo.client.RdObject
 import rover.rdo.state.AtomicObjectState
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.async.Async.{async, await}
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+
+
 // FIXME: ensure messages can be read, but not modified or reassigned...
 // FIXME: after state & rd object impl change
-class Chat(var messages: List[ChatMessage]) extends RdObject[String](AtomicObjectState.initial("")) {
+class Chat(_onStateModified: Chat#Updater, _initialState: AtomicObjectState[List[ChatMessage]]) extends RdObject[List[ChatMessage]](_initialState) {
+//	type State = List[ChatMessage]
+	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
 
-	// TODO: Something with users, crypto stuff on identity
-	// FIXME: Hashes should be used here as well as user ids
-	private var users = Map[Long, String]()
+	def send(message: ChatMessage): Future[Unit]= {
+		val op: AtomicObjectState[List[ChatMessage]]#Op = s => s :+ message
 
-	def this(messages: List[ChatMessage], users: Map[Long, String]) {
-		this(messages)
-		this.users = users
+		async {
+			modifyState(op)
+		}
 	}
 
-	def addUser(id: Long, uri: String): Unit = {
-		if (!this.users.contains(id)) this.users updated (id, uri)
-		// FIXME: otherwise we can also update, a user's uri
-		else println("Already existing user")
-	}
-
-	def removeUser(id : Long)= {
-		if(users.contains(id)) users = users - id
-		else println("Non-exsiting id given")
-	}
-
-	def appendMessage(chatMessage: ChatMessage): Unit = {
-		messages = messages :+ chatMessage
-	}
-
-	def terminate(): Unit ={
-		//TODO: terminate
+	override def onStateModified(oldState: AtomicObjectState[List[ChatMessage]]): Future[Unit] = {
+		_onStateModified(state)
 	}
 
 	def currentVersion(): Long = {
-		messages.size
+		immutableState.size
 	}
-
-//	override def stableVersion: Long = {
-//		// TODO: the stable version (last committed)
-//		messages.size
-//	}
-
-	def printMessages(): Unit = {
-		for (i <- messages) {
-			println(s"body: ${i.body}, author: ${i.author}, time: ${i.timestamp}")
-		}
-	}
-}
-
-class ChatMessage(val body: String,
-                  val author: String,
-                  val timestamp: Long = java.time.Instant.now.getEpochSecond())
-{
 
 }
 
-object chatFoo{
-	def main(args: Array[String]): Unit ={
-		val chat = new Chat(messages = List[ChatMessage]())
-		chat.addUser(1234, "tt")
-		val m: ChatMessage = new ChatMessage("test message", "Ioa")
-		chat.appendMessage(m)
-		chat.printMessages()
+object Chat {
+	def fromRDO(rdo: RdObject[List[ChatMessage]], _onStateModified: Chat#Updater): Chat = {
+		new Chat(_onStateModified, rdo.state)
 	}
 }
+
+
