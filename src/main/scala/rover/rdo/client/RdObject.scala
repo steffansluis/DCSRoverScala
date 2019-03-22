@@ -1,6 +1,6 @@
 package rover.rdo.client
 
-import rover.rdo.state.{AtomicObjectState, LogRecord}
+import rover.rdo.state.{AtomicObjectState, RecordedStateModification}
 
 //FIXME: use hashes instead of Longs/Strings?
 class RdObject[A](var state: AtomicObjectState[A]) {
@@ -21,12 +21,12 @@ class RdObject[A](var state: AtomicObjectState[A]) {
 }
 class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val ancestor: AtomicObjectState[A]) {
 
-	def asList: List[LogRecord[A]] = {
+	def asList: List[RecordedStateModification[A]] = {
 		for(i <- child.log.asList) {
-			if(i.parent == ancestor) {
+			if(i.parent.contains(ancestor)) {
 				// TODO: inefficient
 				val indexOfI = child.log.asList.indexOf(i)
-				val logRecordsUpToI = child.log.asList.slice(indexOfI, child.log.asList.size - 1)
+				val logRecordsUpToI = child.log.asList.slice(indexOfI, child.log.asList.size)
 				return logRecordsUpToI
 			}
 		}

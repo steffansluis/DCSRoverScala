@@ -2,6 +2,7 @@ package votingapp
 
 import rover.rdo.CommonAncestor
 import rover.rdo.client.{DiffWithAncestor, RdObject}
+import rover.rdo.conflict.ConflictedState
 import rover.rdo.state.AtomicObjectState
 
 
@@ -101,28 +102,39 @@ object henk {
 object sjaak {
 	def main(args: Array[String]): Unit = {
 		val poll = Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
-		println(poll)
 
+		/* Common ancestor state: 1 no vote */
 		poll.cast(PollChoice("No"))
+		println(s"Common ancestor: $poll \n\n")
+
 
 		val poll2 = Poll.copyOf(poll)
 
-		println("\ncasting votes:")
-
+		/* Vote in Poll 1 */
 		poll.cast(PollChoice("Yes"))
 		poll.cast(PollChoice("Yes"))
 		poll.cast(PollChoice("No"))
 
+		/* Vote in Poll 2 */
 		poll2.cast(PollChoice("No"))
 		poll2.cast(PollChoice("No"))
-		println("Poll:" + poll)
-		println("Poll2:" + poll2)
 
-		val parent = CommonAncestor.from(poll, poll2)
-		val ancestor = parent.state
-		println("Parent:" + parent.toString)
 
-		val diff = new DiffWithAncestor[Votes](poll.state, ancestor)
-		println("Diff: " + diff.toString)
+		println("Poll:" + poll + "\n\n")
+		println("Poll2:" + poll2 + "\n\n")
+
+		val ancestor = CommonAncestor.from(poll, poll2)
+		val ancestorState = ancestor.state
+		println("Ancestor:" + ancestor.toString)
+
+		val diffPoll1vsCommon = new DiffWithAncestor[Votes](poll.state, ancestorState)
+		println("Diff poll1 and common ancestor: " + diffPoll1vsCommon.toString)
+
+		val diffPoll2vsCommon = new DiffWithAncestor[Votes](poll2.state, ancestorState)
+		println("Diff poll2 and common ancestor: " + diffPoll2vsCommon.toString)
+
+		val pollMergeConflictResolutionMechanism = new PollConflictResolutionMechanism()
+		val resolved = pollMergeConflictResolutionMechanism.resolveConflict(ConflictedState.from(poll, poll2))
+		println(s"\n\nResolved: $resolved")
 	}
 }

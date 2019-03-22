@@ -7,7 +7,7 @@ trait AtomicObjectState[A] extends ObjectState {
 
 	def immutableState: A
 
-	protected[rdo] def log: StateLog[A]
+	def log: StateLog[A]
 	def applyOp(operation: Op): AtomicObjectState[A]
 
 	override def equals(obj: Any): Boolean
@@ -16,7 +16,7 @@ trait AtomicObjectState[A] extends ObjectState {
 class InitialAtomicObjectState[A](identity: A) extends AtomicObjectState[A] {
 	override def immutableState: A = identity
 	
-	override protected def log: StateLog[A] = StateLog.empty
+	override def log: StateLog[A] = StateLog.empty
 	
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
 		val resultingState = operation.apply(immutableState)
@@ -25,7 +25,7 @@ class InitialAtomicObjectState[A](identity: A) extends AtomicObjectState[A] {
 }
 
 // TODO: make ctor private
-class BasicAtomicObjectState[A](val immutableState: A, protected[rdo] val log: StateLog[A]) extends AtomicObjectState[A] {
+class BasicAtomicObjectState[A](val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
 
 	def applyOp(operation: Op): AtomicObjectState[A] = {
 		// Operation must apply itself to the state
@@ -34,7 +34,7 @@ class BasicAtomicObjectState[A](val immutableState: A, protected[rdo] val log: S
 		val result = operation.apply(this.immutableState)
 
 		// Record the operation in the Log
-		val updatedLog = log.appended(ApplicationOperationAppliedLogRecord(this, operation))
+		val updatedLog = log.appended(OpAppliedRecord(operation, this))
 
 		return new BasicAtomicObjectState[A](result, updatedLog)
 	}
@@ -57,6 +57,15 @@ object AtomicObjectState {
 	}
 
 //	def fromLog[A](log: StateLog[A]): AtomicObjectState[A] = {
-//		return new BasicAtomicObjectState[A](log.asList.last.stateResult, log)
+//		return log.latestState.resultingAtomic
 //	}
+
+	def byApplyingOp[A](stateFrom: AtomicObjectState[A], op: AtomicObjectState[A]#Op): AtomicObjectState[A] = {
+		val resultingState = op.apply(stateFrom.immutableState)
+		val appendedLog = stateFrom.log.appended(new OpAppliedRecord[A](op, stateFrom))
+
+		val resultingAtomicState = new BasicAtomicObjectState[A](resultingState, appendedLog)
+
+		return resultingAtomicState
+	}
 }

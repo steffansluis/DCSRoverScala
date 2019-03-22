@@ -15,17 +15,18 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 
 	// determine it once and defer all RdObject methods to it
 	def state: AtomicObjectState[A] = {
-		// determine here... & probably cache or is that not needed in scala? :S
-		// FIXME: currently we return just the atomic state..what about the outstanding operations?
+		// todo: investigate if this function is exectured every time, or just once
+
 		for (i <- one.log.asList.reverse) {
 			for (j <- other.log.asList.reverse) {
 
-				println()
-				println("I:" + i)
-				println("J:" + j)
+//				println()
+//				println("I:" + i)
+//				println("J:" + j)
 
-				if (i.parent == j.parent){
-					val ancestor = i.parent
+				//noinspection ExistsEquals
+				if (i.parent.exists(parentI => j.parent.exists(parentJ => parentI == parentJ))) {
+					val ancestor = i.parent.get
 					return ancestor
 				}
 			}
@@ -42,7 +43,7 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 		state.immutableState
 	}
 
-	override protected[rdo] def log: StateLog[A] = {
+	override def log: StateLog[A] = {
 		state.log
 	}
 
