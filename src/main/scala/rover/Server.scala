@@ -1,18 +1,17 @@
 package rover
 
-import rover.Client.OAuth2Credentials
-import rover.rdo.AtomicObjectState
-import rover.rdo.client.{CommonAncestor, RdObject}
-import lol.http._
-import lol.json._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import cats.effect.IO
-import chatapp.ChatMessage
 import io.circe._
 import io.circe.syntax._
-import io.circe.generic.semiauto._
+import lol.http._
+import lol.json._
+import rover.Client.OAuth2Credentials
+import rover.rdo.client.RdObject
+import rover.rdo.conflict.ConflictedState
+import rover.rdo.conflict.provided.AppendIncomingChangesMergeResolve
+import rover.rdo.state.AtomicObjectState
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 /**
   * Encapsulating the logic of the server.
@@ -21,7 +20,8 @@ import scala.util.Try
   * @param mapToStates, map to stable (committed) states of RDOs
 */
 class Server[C, A]( protected val address: String,
-                    protected val mapToClients: Map[Session[C, A]#Identifier, Client[C, A]], protected var mapToStates: Map[String, AtomicObjectState[A]]) {
+                    protected val mapToClients: Map[Session[C, A]#Identifier, Client[C, A]],
+                    protected var mapToStates: Map[String, AtomicObjectState[A]]) {
 
   //FIXME: Does the server has its own creds? It merely keeps track of clients' creds
 //  val credentials = null
@@ -39,18 +39,20 @@ class Server[C, A]( protected val address: String,
         return mapToStates(stateId)
   }
 
-  def deliveredState(stateId: String, atomicState: AtomicObjectState[A]): Unit ={
-    this.mapToStates = this.mapToStates + (stateId -> atomicState)
+  def deliveredState(stateId: String, incomingState: AtomicObjectState[A]): Unit ={
+    this.mapToStates = this.mapToStates + (stateId -> incomingState)
   }
 
-  def receivedState(stateId: String, state: AtomicObjectState[A]): Unit ={
-    val clientRDO = new RdObject[A](state)
-    val serverRDO = new RdObject[A](mapToStates(stateId))
-    val ancestor = new CommonAncestor[A](serverRDO, clientRDO)
-    if (ancestor == serverRDO) deliveredState(stateId, state)
-    else {
-      //FiXME: Conflict resolution and history diff stuff
+  def receivedState(stateId: String, incomingState: AtomicObjectState[A]): Unit ={
+    val serverState = mapToStates(stateId)
+    if (serverState != incomingState){
+      val conflictedState = ConflictedState.from(serverState, incomingState)
+	    // FIXME: make this pluggable, the app should decide.
+      val resolver = new AppendIncomingChangesMergeResolve[A]
+      val resolved = resolver.resolveConflict(conflictedState)
+      this.mapToStates = this.mapToStates + (stateId -> resolved.asAtomicObjectState)
     }
+
   }
 }
 

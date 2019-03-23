@@ -1,7 +1,7 @@
 package chatapp
 
 import rover.Client.OAuth2Credentials
-import rover.rdo.AtomicObjectState
+import rover.rdo.state.AtomicObjectState
 import rover.{Client, Server, Session, HTTPServer}
 
 

@@ -2,18 +2,16 @@ package rover
 
 import lol.http._
 import lol.json._
-
 import rover.Client.OAuth2Credentials
-import rover.rdo.AtomicObjectState
-
+import rover.rdo.state.AtomicObjectState
 import cats.implicits._
-import cats.effect.{ IO }
+import cats.effect.IO
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.async.Async.{async, await}
-
 import io.circe._
+import rover.rdo.state.AtomicObjectState
 
 /**
   * Class encapsulating a Client, who interacts with a Server within a Session

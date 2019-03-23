@@ -1,14 +1,13 @@
 package chatapp
 
 import rover.Client.OAuth2Credentials
-import rover.rdo.AtomicObjectState
 import rover.rdo.client.RdObject
-import rover.{Client, HTTPClient, Session}
+import rover.{HTTPClient, Session}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.async.Async.{async, await}
-import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class ChatClient(serverAddress: String) extends
 	HTTPClient[List[ChatMessage]](serverAddress, (credentials) => credentials.accessToken) {
@@ -38,7 +37,7 @@ class ChatClient(serverAddress: String) extends
 			session = createSession(credentials)
 			val state = importRDO("chat")
 			val rdo = new RdObject[List[ChatMessage]](state)
-			chat = Chat.fromRDO(rdo, updater)
+			chat = Chat.fromRDO(rdo)
 //			println(s"Initial state: ${chat.state}")
 		}
 	}
