@@ -3,6 +3,7 @@ package votingapp
 import rover.rdo.CommonAncestor
 import rover.rdo.client.{DiffWithAncestor, RdObject}
 import rover.rdo.conflict.ConflictedState
+import rover.rdo.conflict.provided.AppendIncomingChangesMergeResolve
 import rover.rdo.state.AtomicObjectState
 
 
@@ -133,8 +134,8 @@ object sjaak {
 		val diffPoll2vsCommon = new DiffWithAncestor[Votes](poll2.state, ancestorState)
 		println("Diff poll2 and common ancestor: " + diffPoll2vsCommon.toString)
 
-		val pollMergeConflictResolutionMechanism = new PollConflictResolutionMechanism(ConflictedState.from(poll, poll2))
-		val resolved = pollMergeConflictResolutionMechanism.resolved
+		val pollMergeConflictResolutionMechanism = new PollAppMergeConflictResolutionMechanism()
+		val resolved = pollMergeConflictResolutionMechanism.resolveConflict(ConflictedState.from(poll, poll2))
 		println(s"\n\nResolved: $resolved")
 
 		println(s"\n    log of resolved: ${resolved.asAtomicObjectState.log.asList.mkString("\n     ")}")

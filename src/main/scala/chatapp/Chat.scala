@@ -84,7 +84,7 @@ object test {
 		println(s"state: ${commonAncestorState.immutableState.last.toString}")
 
 
-		val resolved = new ChatConflictResolutionMechanism(ConflictedState.from(chat, chat2)).resolved
+		val resolved = new ChatConflictResolutionMechanism().resolveConflict(ConflictedState.from(chat, chat2))
 		println(s"\n\n")
 		println("**** Conflict Resolution ****")
 		println(resolved.asAtomicObjectState.immutableState.last.toString)
