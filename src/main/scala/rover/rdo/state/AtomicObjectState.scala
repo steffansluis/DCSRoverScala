@@ -1,7 +1,11 @@
 package rover.rdo.state
 
+import rover.rdo.ObjectId
+
 trait AtomicObjectState[A] {
 	type Op = A => A
+
+	def objectId: ObjectId
 
 	def immutableState: A
 
@@ -11,19 +15,21 @@ trait AtomicObjectState[A] {
 	override def equals(obj: Any): Boolean
 }
 
-class InitialAtomicObjectState[A](identity: A) extends AtomicObjectState[A] {
-	override def immutableState: A = identity
+// TODO: make ctor private?
+class InitialAtomicObjectState[A] (identityState: A) extends AtomicObjectState[A] {
+	override def objectId: ObjectId = ObjectId.generateNew()
+
+	override def immutableState: A = identityState
 	
-	override def log: StateLog[A] = StateLog.empty
+	override def log: StateLog[A] = StateLog.withInitialState(this.identityState)
 	
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
 		val resultingState = operation.apply(immutableState)
-		return new BasicAtomicObjectState[A](resultingState, log)
+		return new BasicAtomicObjectState[A](this.objectId, resultingState, log)
 	}
 }
 
-// TODO: make ctor private
-class BasicAtomicObjectState[A](val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
+class BasicAtomicObjectState[A] (val objectId: ObjectId, val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
 
 	def applyOp(operation: Op): AtomicObjectState[A] = {
 		// Operation must apply itself to the state
@@ -34,7 +40,7 @@ class BasicAtomicObjectState[A](val immutableState: A, val log: StateLog[A]) ext
 		// Record the operation in the Log
 		val updatedLog = log.appended(OpAppliedRecord(operation, this))
 
-		return new BasicAtomicObjectState[A](result, updatedLog)
+		return new BasicAtomicObjectState[A](this.objectId, result, updatedLog)
 	}
 
 	override def equals(that: Any): Boolean = {
@@ -51,7 +57,7 @@ class BasicAtomicObjectState[A](val immutableState: A, val log: StateLog[A]) ext
 
 object AtomicObjectState {
 	def initial[A](value: A): AtomicObjectState[A] = {
-		return new BasicAtomicObjectState[A](value, StateLog.withInitialState(value))
+		return new InitialAtomicObjectState[A](value)
 	}
 
 //	def fromLog[A](log: StateLog[A]): AtomicObjectState[A] = {
@@ -62,7 +68,7 @@ object AtomicObjectState {
 		val resultingState = op.apply(stateFrom.immutableState)
 		val appendedLog = stateFrom.log.appended(new OpAppliedRecord[A](op, stateFrom))
 
-		val resultingAtomicState = new BasicAtomicObjectState[A](resultingState, appendedLog)
+		val resultingAtomicState = new BasicAtomicObjectState[A](stateFrom.objectId, resultingState, appendedLog)
 
 		return resultingAtomicState
 	}

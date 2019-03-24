@@ -1,5 +1,6 @@
 package rover.rdo.conflict.resolve
 
+import rover.rdo.conflict.ConflictedState
 import rover.rdo.state.{AtomicObjectState, BasicAtomicObjectState, MergeOperation}
 
 /**
@@ -36,6 +37,6 @@ trait ConflictResolutionMechanism[A] {
 case class ResolvedMerge[A](conflictedState: ConflictedState[A], resultingState: A, implicit val conflictResolutionMechanism: ConflictResolutionMechanism[A]) {
 	def asAtomicObjectState: AtomicObjectState[A] = {
 		val mergeOperationExectured = new MergeOperation[A](conflictedState.serverVersion, conflictedState.incomingVersion, conflictResolutionMechanism)
-		new BasicAtomicObjectState[A](resultingState, conflictedState.serverVersion.log.appended(mergeOperationExectured))
+		new BasicAtomicObjectState[A](conflictedState.serverVersion.objectId, resultingState, conflictedState.serverVersion.log.appended(mergeOperationExectured))
 	}
 }

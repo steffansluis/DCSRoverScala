@@ -6,7 +6,7 @@ import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class RdObject[A](val objectId: ObjectId, var state: AtomicObjectState[A]) {
+class RdObject[A](var state: AtomicObjectState[A]) {
 
 	// same:
 	//FIXME: use hashes instead of Longs/Strings?

@@ -48,7 +48,7 @@ class ChatClient(serverAddress: String) extends
 //		println(s"Sending message with intial state: ${chat.state}")
 		async {
 			await(chat.send(new ChatMessage(message, user)))
-			exportRDO("chat", chat.state)
+			exportRDO(chat.state)
 			//			await(session.exportRDO("chat", chat))
 //			updater(chat.state)
 		}

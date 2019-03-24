@@ -87,13 +87,13 @@ class HTTPClient[A](_serverAddress: String, _identifier: Session[OAuth2Credentia
 
   }
 
-  def exportRDO(objectId: String, state: AtomicObjectState[A]): Unit = {
+  def exportRDO(state: AtomicObjectState[A]): Unit = {
     val roverClient = lol.http.Client(serverAddress, 8888, "http")
     val userAgent = h"User-Agent" -> h"lolhttp"
 
 //    println(s"Exporting RDO $objectId as $state")
     val setState = (for {
-      result <- roverClient.run(Post(s"/api/rdo/$objectId", stateEncoder.apply(state).toString).addHeaders(userAgent)) {
+      result <- roverClient.run(Post(s"/api/rdo/${state.objectId}", stateEncoder.apply(state).toString).addHeaders(userAgent)) {
         _.readSuccessAs[Json].map(json => {
 //          println(s"Received JSON response: $json")
 //          json.as[AtomicObjectState[A]]
