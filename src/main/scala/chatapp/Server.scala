@@ -1,8 +1,7 @@
 package chatapp
 
-import rover.Client.OAuth2Credentials
+import rover.HTTPServer
 import rover.rdo.state.AtomicObjectState
-import rover.{Client, Server, Session, HTTPServer}
 
 
 class ChatServer extends HTTPServer[List[ChatMessage]](_mapToStates = Map("chat" -> ChatServer.CHAT_STATE)) {
