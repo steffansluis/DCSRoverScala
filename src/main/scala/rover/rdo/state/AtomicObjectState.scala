@@ -1,8 +1,6 @@
 package rover.rdo.state
 
-import rover.rdo.ObjectState
-
-trait AtomicObjectState[A] extends ObjectState {
+trait AtomicObjectState[A] {
 	type Op = A => A
 
 	def immutableState: A
