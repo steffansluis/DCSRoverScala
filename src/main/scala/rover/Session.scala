@@ -1,8 +1,8 @@
 package rover
 
 import chatapp.ChatServer
+import rover.rdo.RdObject
 import rover.rdo.state.AtomicObjectState
-import rover.rdo.client.RdObject
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global

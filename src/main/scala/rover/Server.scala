@@ -6,9 +6,9 @@ import io.circe.syntax._
 import lol.http._
 import lol.json._
 import rover.Client.OAuth2Credentials
-import rover.rdo.client.RdObject
+import rover.rdo.RdObject
 import rover.rdo.conflict.ConflictedState
-import rover.rdo.conflict.provided.AppendIncomingChangesMergeResolve
+import rover.rdo.conflict.resolve.AppendIncomingChangesMergeResolve
 import rover.rdo.state.AtomicObjectState
 
 import scala.concurrent.ExecutionContext.Implicits.global

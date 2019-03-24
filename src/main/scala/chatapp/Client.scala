@@ -1,7 +1,9 @@
 package chatapp
 
+import chatapp.model.{Chat, ChatMessage}
+import chatapp.ui.REPL
 import rover.Client.OAuth2Credentials
-import rover.rdo.client.RdObject
+import rover.rdo.RdObject
 import rover.{HTTPClient, Session}
 
 import scala.async.Async.{async, await}

@@ -1,5 +1,6 @@
 package chatapp
 
+import chatapp.model.ChatMessage
 import rover.HTTPServer
 import rover.rdo.state.AtomicObjectState
 

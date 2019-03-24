@@ -1,7 +1,8 @@
 package rover.rdo.conflict
 
-import rover.rdo.CommonAncestor
-import rover.rdo.client.{DiffWithAncestor, RdObject}
+import rover.rdo.{DiffWithAncestor, RdObject}
+import rover.rdo.client.DiffWithAncestor
+import rover.rdo.rdo.DiffWithAncestor
 import rover.rdo.state.AtomicObjectState
 
 class ConflictedState[A] private (val serverVersion: AtomicObjectState[A], val incomingVersion: AtomicObjectState[A]) {

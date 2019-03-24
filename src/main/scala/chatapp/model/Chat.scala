@@ -1,14 +1,13 @@
-package chatapp
+package chatapp.model
 
-import rover.rdo.CommonAncestor
-import rover.rdo.client.RdObject
+import chatapp.{ChatConflictResolutionMechanism, ChatUser}
+import rover.rdo.RdObject
 import rover.rdo.conflict.ConflictedState
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
 
+import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.async.Async.{async, await}
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import scala.concurrent.Future
 
 
 // FIXME: ensure messages can be read, but not modified or reassigned...

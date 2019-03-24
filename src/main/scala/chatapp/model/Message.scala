@@ -1,6 +1,8 @@
-package chatapp
-import io.circe._, io.circe.syntax._
-import io.circe.{Encoder, Json}
+package chatapp.model
+
+import chatapp.ChatUser
+import io.circe.syntax._
+import io.circe.{Encoder, Json, _}
 
 
 class ChatMessage(val body: String,
