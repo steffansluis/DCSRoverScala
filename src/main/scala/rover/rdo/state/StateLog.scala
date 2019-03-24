@@ -1,6 +1,7 @@
 package rover.rdo.state
 
-import rover.rdo.conflict.{ConflictResolutionMechanism, ConflictedState}
+import rover.rdo.conflict.ConflictedState
+import rover.rdo.conflict.resolve.ConflictResolutionMechanism
 
 /**
   * Represents a general Logged Operation
@@ -28,7 +29,7 @@ case class StateInitializedLogRecord[A](state: A) extends RecordedStateModificat
 	override def parent: Option[AtomicObjectState[A]] = None
 
 	override def appliedFunction: AtomicObjectState[A] => AtomicObjectState[A] = _ => {
-			new BasicAtomicObjectState[A](state, StateLog.empty.appended(this))
+			AtomicObjectState.initial(state)
 		}
 
 //	override def rebase(newParent: AtomicObjectState[A]): LogRecord[A] = {
