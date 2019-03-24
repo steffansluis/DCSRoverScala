@@ -1,4 +1,4 @@
-package rover.rdo.conflict.provided
+package rover.rdo.conflict.resolve
 
 import rover.rdo.conflict.{ConflictResolutionMechanism, ConflictedState, ResolvedMerge}
 

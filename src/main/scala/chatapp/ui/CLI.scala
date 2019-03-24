@@ -1,4 +1,4 @@
-package chatapp
+package chatapp.ui
 
 import cats.implicits._
 import com.monovore.decline._

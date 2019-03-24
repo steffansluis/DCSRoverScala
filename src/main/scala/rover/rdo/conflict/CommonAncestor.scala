@@ -1,6 +1,6 @@
-package rover.rdo
+package rover.rdo.conflict
 
-import rover.rdo.client.RdObject
+import rover.rdo.RdObject
 import rover.rdo.state.{AtomicObjectState, StateLog}
 
 /**

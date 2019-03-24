@@ -1,6 +1,6 @@
 package votingapp
 
-import rover.rdo.conflict.provided.AppendIncomingChangesMergeResolve
+import rover.rdo.conflict.resolve.AppendIncomingChangesMergeResolve
 
 class PollAppMergeConflictResolutionMechanism extends AppendIncomingChangesMergeResolve[Votes] {
 	

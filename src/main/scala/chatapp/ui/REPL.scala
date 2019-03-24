@@ -1,8 +1,8 @@
-package chatapp
+package chatapp.ui
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future, Promise}
 import scala.async.Async.{async, await}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 
 class REPL[A](reader: REPL[A]#Reader, executor: REPL[A]#Executor, printer: REPL[A]#Printer) {
