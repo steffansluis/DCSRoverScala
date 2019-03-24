@@ -13,11 +13,14 @@ import rover.rdo.state.AtomicObjectState
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
+
 /**
   * Encapsulating the logic of the server.
   * @param address of the server
   * @param mapToClients, map to clients using as key the access token granted to the client
   * @param mapToStates, map to stable (committed) states of RDOs
+  * @tparam C type of credentials used for sessions (e.g. OAuth2Credentials for OAuth type of auth)
+  * @tparam A type of state of the application (e.g. "Votes" in a poll app, List[Messages] in a chatapp)
 */
 class Server[C, A]( protected val address: String,
                     protected val mapToClients: Map[Session[C, A]#Identifier, Client[C, A]],
