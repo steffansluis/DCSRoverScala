@@ -1,6 +1,6 @@
 package rover.rdo.conflict.resolve
 
-import rover.rdo.conflict.{ConflictResolutionMechanism, ConflictedState, ResolvedMerge}
+import rover.rdo.conflict.ConflictedState
 
 /**
   * <p>

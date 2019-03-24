@@ -2,7 +2,7 @@ package chatapp.model
 
 import chatapp.{ChatConflictResolutionMechanism, ChatUser}
 import rover.rdo.RdObject
-import rover.rdo.conflict.ConflictedState
+import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
 
 import scala.async.Async.async
@@ -49,7 +49,7 @@ object Chat {
 
 object test {
 	def main(args: Array[String]): Unit ={
-		val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("initiating", new ChatUser("system"))))
+		val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("Welcome", new ChatUser("system"))))
 		val chat = new Chat(initialState)
 		val THREAD_SLEEP = 1000
 
