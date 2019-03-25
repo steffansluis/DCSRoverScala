@@ -1,7 +1,7 @@
 package rover
 
 import chatapp.ChatServer
-import rover.rdo.RdObject
+import rover.rdo.{ObjectId, RdObject}
 import rover.rdo.state.AtomicObjectState
 
 import scala.concurrent.Future
@@ -12,12 +12,12 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
   type Id = String
   type Identifier = C => Id
 
-  // TODO: Move this to the proper place
-  type ObjectId = Id
+//  // TODO: Move this to the proper place
+//  type ObjectId = Id
 
 
   // TODO: Implement errors
-  def importRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
+  def importDummyRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
     async{
       if (objectId == "chat"){
         ChatServer.CHAT_STATE.asInstanceOf[AtomicObjectState[A]]
@@ -26,18 +26,14 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
     }
   }
 
-  def importRDOwithState[A](objectId: ObjectId, stateId: String): Future[Unit] = {
-    // TODO: Hacks
-    async {
-      if (objectId == "chat") {
-        val atomicState = server.getAtomicStateWithId(stateId)
-        client.appendedState(stateId, atomicState)
-      }
-//      else null
+  def importRDO(stateId: ObjectId) : Future[AtomicObjectState[A]] = {
+    async{
+      if (server.containsStateId(stateId)) server.getAtomicStateWithId(stateId)
+      else null
     }
   }
   
-  def exportRDOwithState[A](stateId: String): Future[Unit] = {
+  def exportRDOwithState[A](stateId: ObjectId): Future[Unit] = {
     async{
       val atomicState = client.getAtomicStateWithId(stateId)
       server.receivedState(stateId, atomicState)

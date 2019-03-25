@@ -2,10 +2,11 @@ package chatapp
 
 import chatapp.model.ChatMessage
 import rover.HTTPServer
+import rover.rdo.ObjectId
 import rover.rdo.state.AtomicObjectState
 
 
-class ChatServer extends HTTPServer[List[ChatMessage]](_mapToStates = Map("chat" -> ChatServer.CHAT_STATE)) {
+class ChatServer extends HTTPServer[List[ChatMessage]](_mapToStates = Map(ObjectId.generateFromString("chat") -> ChatServer.CHAT_STATE)) {
 
 }
 
