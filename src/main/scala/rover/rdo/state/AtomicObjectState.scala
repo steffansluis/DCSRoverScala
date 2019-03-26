@@ -5,8 +5,6 @@ import rover.rdo.ObjectId
 trait AtomicObjectState[A] {
 	type Op = A => A
 
-	def objectId: ObjectId
-
 	def immutableState: A
 
 	def log: StateLog[A]
@@ -17,7 +15,6 @@ trait AtomicObjectState[A] {
 
 // TODO: make ctor private?
 class InitialAtomicObjectState[A] (identityState: A) extends AtomicObjectState[A] {
-	override def objectId: ObjectId = ObjectId.generateNew()
 
 	override def immutableState: A = identityState
 	
@@ -25,11 +22,11 @@ class InitialAtomicObjectState[A] (identityState: A) extends AtomicObjectState[A
 	
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
 		val resultingState = operation.apply(immutableState)
-		return new BasicAtomicObjectState[A](this.objectId, resultingState, log)
+		return new BasicAtomicObjectState[A](resultingState, log)
 	}
 }
 
-class BasicAtomicObjectState[A] (val objectId: ObjectId, val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
+class BasicAtomicObjectState[A] (val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
 
 	def applyOp(operation: Op): AtomicObjectState[A] = {
 		// Operation must apply itself to the state
@@ -40,7 +37,7 @@ class BasicAtomicObjectState[A] (val objectId: ObjectId, val immutableState: A, 
 		// Record the operation in the Log
 		val updatedLog = log.appended(OpAppliedRecord(operation, this))
 
-		return new BasicAtomicObjectState[A](this.objectId, result, updatedLog)
+		return new BasicAtomicObjectState[A](result, updatedLog)
 	}
 
 	override def equals(that: Any): Boolean = {
@@ -68,7 +65,7 @@ object AtomicObjectState {
 		val resultingState = op.apply(stateFrom.immutableState)
 		val appendedLog = stateFrom.log.appended(new OpAppliedRecord[A](op, stateFrom))
 
-		val resultingAtomicState = new BasicAtomicObjectState[A](stateFrom.objectId, resultingState, appendedLog)
+		val resultingAtomicState = new BasicAtomicObjectState[A](resultingState, appendedLog)
 
 		return resultingAtomicState
 	}

@@ -12,11 +12,13 @@ import rover.rdo.state.{AtomicObjectState, StateLog}
   * @param other Some other RDO
   */
 class CommonAncestor[A](private val one: AtomicObjectState[A], private val other: AtomicObjectState[A]) extends AtomicObjectState[A] { // todo: fixme with a deferred state
-	if (one.objectId != other.objectId) {
-		throw new RuntimeException("Given AtomicObjectStates do not share same objectId. Not allowed to compare the two.")
-	}
+	//FIXME: the object id is no longer a field of an atomic state. However, this is not an issue,
+	//		   since the CommonAncestor is invoked on the server side, which has the information for
+	//			 the object id
 
-	override def objectId: ObjectId = one.objectId // one or other, doesn't matter
+//	if (one.objectId != other.objectId) {
+//		throw new RuntimeException("Given AtomicObjectStates do not share same objectId. Not allowed to compare the two.")
+//	}
 
 	// determine it once and defer all RdObject methods to it
 	def state: AtomicObjectState[A] = {
