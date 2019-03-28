@@ -1,14 +1,13 @@
-package chatapp
+package chatapp.model
 
-import rover.rdo.CommonAncestor
-import rover.rdo.client.RdObject
-import rover.rdo.conflict.ConflictedState
+import chatapp.{ChatConflictResolutionMechanism, ChatUser}
+import rover.rdo.RdObject
+import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
 
+import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.async.Async.{async, await}
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import scala.concurrent.Future
 
 
 // FIXME: ensure messages can be read, but not modified or reassigned...
@@ -50,7 +49,7 @@ object Chat {
 
 object test {
 	def main(args: Array[String]): Unit ={
-		val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("initiating", new ChatUser("system"))))
+		val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("Welcome", new ChatUser("system"))))
 		val chat = new Chat(initialState)
 		val THREAD_SLEEP = 1000
 

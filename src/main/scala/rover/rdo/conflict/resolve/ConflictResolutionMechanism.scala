@@ -1,5 +1,6 @@
-package rover.rdo.conflict
+package rover.rdo.conflict.resolve
 
+import rover.rdo.conflict.ConflictedState
 import rover.rdo.state.{AtomicObjectState, BasicAtomicObjectState, MergeOperation}
 
 /**

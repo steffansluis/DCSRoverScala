@@ -11,6 +11,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.async.Async.{async, await}
 import io.circe._
+import rover.rdo.ObjectId
 import rover.rdo.state.AtomicObjectState
 
 /**
@@ -21,8 +22,9 @@ import rover.rdo.state.AtomicObjectState
   * @param mapToStates, map to up-to-date version of local RDOs
   */
 //FIXME: create a unique, static id for each RDO upon its creation
-class Client[C, A](protected val serverAddress: String, protected val identifier: Session[C, A]#Identifier,
-                   protected var mapToStates: Map[String, AtomicObjectState[A]] = Map[String, AtomicObjectState[A]]()){
+class Client[C, A](protected val serverAddress: String,
+                   protected val identifier: Session[C, A]#Identifier,
+                   protected var mapToStates: Map[ObjectId, AtomicObjectState[A]] = Map[ObjectId, AtomicObjectState[A]]()) {
 
 
   val server = Server.fromAddress[C,A](serverAddress)
@@ -30,11 +32,11 @@ class Client[C, A](protected val serverAddress: String, protected val identifier
     server.createSession(credentials, this.identifier)
   }
 
-  def appendedState(stateId: String, atomicState: AtomicObjectState[A]): Unit ={
+  def appendedState(stateId: ObjectId, atomicState: AtomicObjectState[A]): Unit ={
     this.mapToStates = this.mapToStates + (stateId -> atomicState)
   }
 
-  def getAtomicStateWithId(stateId: String): AtomicObjectState[A] ={
+  def getAtomicStateWithId(stateId: ObjectId): AtomicObjectState[A] ={
     return mapToStates(stateId)
   }
 }
@@ -49,7 +51,8 @@ object Client {
   }
 }
 
-class HTTPClient[A](_serverAddress: String, _identifier: Session[OAuth2Credentials, A]#Identifier)(implicit val encodeA: Encoder[A], implicit val decodeA: Decoder[A]) extends Client[OAuth2Credentials, A](_serverAddress, _identifier) {
+class HTTPClient[A](_serverAddress: String, _identifier: Session[OAuth2Credentials, A]#Identifier)
+                   (implicit val encodeA: Encoder[A], implicit val decodeA: Decoder[A]) extends Client[OAuth2Credentials, A](_serverAddress, _identifier) {
 
     implicit val stateEncoder: Encoder[AtomicObjectState[A]] = Encoder.forProduct1("immutableState")(rdo => (rdo.immutableState))
   //	implicit val stateDecoder: Decoder[AtomicObjectState[List[ChatMessage]]] = deriveDecoder[AtomicObjectState[List[ChatMessage]]]
@@ -64,12 +67,12 @@ class HTTPClient[A](_serverAddress: String, _identifier: Session[OAuth2Credentia
 			}
 	}
 
-  def importRDO(objectId: String): AtomicObjectState[A] = {
+  def importRDO(objectId: ObjectId): AtomicObjectState[A] = {
     val roverClient = lol.http.Client(serverAddress, 8888, "http")
     val userAgent = h"User-Agent" -> h"lolhttp"
 
     val getState = (for {
-      result <- roverClient.run(Get(s"/api/rdo/$objectId").addHeaders(userAgent)) {
+      result <- roverClient.run(Get(s"/api/rdo/${objectId.asString}").addHeaders(userAgent)) {
         _.readSuccessAs[Json].map(json => {
           json.as[AtomicObjectState[A]]
         })
@@ -87,13 +90,14 @@ class HTTPClient[A](_serverAddress: String, _identifier: Session[OAuth2Credentia
 
   }
 
-  def exportRDO(objectId: String, state: AtomicObjectState[A]): Unit = {
+  def exportRDO(objectId: ObjectId): Unit = {
     val roverClient = lol.http.Client(serverAddress, 8888, "http")
     val userAgent = h"User-Agent" -> h"lolhttp"
+    val state = this.getAtomicStateWithId(objectId)
 
 //    println(s"Exporting RDO $objectId as $state")
     val setState = (for {
-      result <- roverClient.run(Post(s"/api/rdo/$objectId", stateEncoder.apply(state).toString).addHeaders(userAgent)) {
+      result <- roverClient.run(Post(s"/api/rdo/${objectId.asString}", stateEncoder.apply(state).toString).addHeaders(userAgent)) {
         _.readSuccessAs[Json].map(json => {
 //          println(s"Received JSON response: $json")
 //          json.as[AtomicObjectState[A]]

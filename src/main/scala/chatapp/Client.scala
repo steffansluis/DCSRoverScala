@@ -1,7 +1,9 @@
 package chatapp
 
+import chatapp.model.{Chat, ChatMessage}
+import chatapp.ui.REPL
 import rover.Client.OAuth2Credentials
-import rover.rdo.client.RdObject
+import rover.rdo.{ObjectId, RdObject}
 import rover.{HTTPClient, Session}
 
 import scala.async.Async.{async, await}
@@ -35,7 +37,7 @@ class ChatClient(serverAddress: String) extends
 			val credentials = new OAuth2Credentials("fake credentials",  "fake credentials")
 			this.user = user
 			session = createSession(credentials)
-			val state = importRDO("chat")
+			val state = importRDO(ObjectId.generateFromString("chat"))
 			val rdo = new RdObject[List[ChatMessage]](state)
 			chat = Chat.fromRDO(rdo)
 //			println(s"Initial state: ${chat.state}")
@@ -46,7 +48,7 @@ class ChatClient(serverAddress: String) extends
 //		println(s"Sending message with intial state: ${chat.state}")
 		async {
 			await(chat.send(new ChatMessage(message, user)))
-			exportRDO("chat", chat.state)
+			exportRDO(ObjectId.generateFromString("chat"))
 			//			await(session.exportRDO("chat", chat))
 //			updater(chat.state)
 		}
@@ -58,11 +60,12 @@ class ChatClient(serverAddress: String) extends
 //				val serverState = await(importRDO("chat")).asInstanceOf[RdObject[List[ChatMessage]]]
 //				chat = Chat.fromRDO(serverState, updater)
 //				println(s"Updating state from update loop...")
-				val state = importRDO("chat")
+				val stateId = ObjectId.generateFromString("chat")
+				val state = importRDO(stateId)
 //				println(s"Got updated state: $state")
 				//				chat = Chat.fromRDO(rdo, updater)
 
-				appendedState("chat", state)
+				appendedState(stateId, state)
 				chat.state = state
 
 //				println(s"Rendering chat state: ${chat.state}")

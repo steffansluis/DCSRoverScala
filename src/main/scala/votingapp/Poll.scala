@@ -1,9 +1,7 @@
 package votingapp
 
-import rover.rdo.CommonAncestor
-import rover.rdo.client.{DiffWithAncestor, RdObject}
-import rover.rdo.conflict.ConflictedState
-import rover.rdo.conflict.provided.AppendIncomingChangesMergeResolve
+import rover.rdo.RdObject
+import rover.rdo.conflict.{CommonAncestor, ConflictedState, DiffWithAncestor}
 import rover.rdo.state.AtomicObjectState
 
 

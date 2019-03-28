@@ -1,6 +1,7 @@
 package chatapp
 
-import rover.rdo.conflict.provided.AppendIncomingChangesMergeResolve
+import chatapp.model.ChatMessage
+import rover.rdo.conflict.resolve.AppendIncomingChangesMergeResolve
 
 class ChatConflictResolutionMechanism extends AppendIncomingChangesMergeResolve[List[ChatMessage]] {
 }

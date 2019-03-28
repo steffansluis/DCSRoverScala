@@ -1,8 +1,8 @@
 package rover.rdo.state
 
-import rover.rdo.ObjectState
+import rover.rdo.ObjectId
 
-trait AtomicObjectState[A] extends ObjectState {
+trait AtomicObjectState[A] {
 	type Op = A => A
 
 	def immutableState: A
@@ -13,10 +13,12 @@ trait AtomicObjectState[A] extends ObjectState {
 	override def equals(obj: Any): Boolean
 }
 
-class InitialAtomicObjectState[A](identity: A) extends AtomicObjectState[A] {
-	override def immutableState: A = identity
+// TODO: make ctor private?
+class InitialAtomicObjectState[A] (identityState: A) extends AtomicObjectState[A] {
+
+	override def immutableState: A = identityState
 	
-	override def log: StateLog[A] = StateLog.empty
+	override def log: StateLog[A] = StateLog.withInitialState(this.identityState)
 	
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
 		val resultingState = operation.apply(immutableState)
@@ -24,8 +26,7 @@ class InitialAtomicObjectState[A](identity: A) extends AtomicObjectState[A] {
 	}
 }
 
-// TODO: make ctor private
-class BasicAtomicObjectState[A](val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
+class BasicAtomicObjectState[A] (val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
 
 	def applyOp(operation: Op): AtomicObjectState[A] = {
 		// Operation must apply itself to the state
@@ -53,7 +54,7 @@ class BasicAtomicObjectState[A](val immutableState: A, val log: StateLog[A]) ext
 
 object AtomicObjectState {
 	def initial[A](value: A): AtomicObjectState[A] = {
-		return new BasicAtomicObjectState[A](value, StateLog.withInitialState(value))
+		return new InitialAtomicObjectState[A](value)
 	}
 
 //	def fromLog[A](log: StateLog[A]): AtomicObjectState[A] = {
