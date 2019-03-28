@@ -2,6 +2,9 @@ package chatapp.model
 
 import chatapp.{ChatConflictResolutionMechanism, ChatUser}
 import rover.rdo.RdObject
+import rover.rdo.comms.Client.OAuth2Credentials
+import rover.rdo.comms.{SelfSyncingRdo, SyncDecision}
+import rover.rdo.comms.SyncDecision.SyncDecision
 import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
 
@@ -10,22 +13,31 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-// FIXME: ensure messages can be read, but not modified or reassigned...
+// FIXME: ensure messages can be read, but not modified or reassigned...(crypto)
 // FIXME: after state & rd object impl change
-class Chat(_initialState: AtomicObjectState[List[ChatMessage]]) extends RdObject[List[ChatMessage]](_initialState) {
-//	type State = List[ChatMessage]
-	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
+class Chat(
+	private val _checkpointedState: AtomicObjectState[List[ChatMessage]],
+	private val credentials: OAuth2Credentials
+)
+extends RdObject[List[ChatMessage]](
+	_checkpointedState
+)
+with SelfSyncingRdo[List[ChatMessage]]
+{
+	type ChatState = List[ChatMessage]
 
+	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
 	val _onStateModified: Chat#Updater = null
 
 	def send(message: ChatMessage): Future[Unit]= {
-		val op: AtomicObjectState[List[ChatMessage]]#Op = s => s :+ message
+		val appendTheMessage = (s: List[ChatMessage]) => s :+ message
 
 		async {
-			modifyState(op)
+			modifyState(appendTheMessage)
 		}
 	}
 
+	/* SelfSyncing impl */
 
 	override def onStateModified(oldState: AtomicObjectState[List[ChatMessage]]): Future[Unit] = {
 		_onStateModified(state)
@@ -35,6 +47,22 @@ class Chat(_initialState: AtomicObjectState[List[ChatMessage]]) extends RdObject
 		immutableState.size
 	}
 
+	override def beforeSync(currentState: List[ChatMessage]): SyncDecision = {
+		return SyncDecision.sync
+	}
+
+	override def afterSync(newState: List[ChatMessage]): Unit = {
+		// do nothing
+	}
+
+	override protected def fetchServerVersion(): AtomicObjectState[List[ChatMessage]] = {
+		// FIXME
+		return this.state
+	}
+
+	override protected def pushLocalVersion(localVersion: AtomicObjectState[List[ChatMessage]]): Unit = {
+		// FIXME
+	}
 }
 
 object Chat {

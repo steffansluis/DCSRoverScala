@@ -56,6 +56,13 @@ class BasicAtomicObjectState[A] (val objectId: ObjectId, val immutableState: A, 
 }
 
 object AtomicObjectState {
+	/**
+	  * <p><b>Currently only the server should ever access this method</b></p><br/>
+	  * Creates a new, fresh AtomicObjectState initialized with the
+	  * @param value
+	  * @tparam A
+	  * @return
+	  */
 	def initial[A](value: A): AtomicObjectState[A] = {
 		return new InitialAtomicObjectState[A](value)
 	}

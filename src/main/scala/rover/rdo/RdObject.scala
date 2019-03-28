@@ -1,6 +1,6 @@
 package rover.rdo
 
-import rover.rdo.state.{AtomicObjectState, RecordedStateModification}
+import rover.rdo.state.AtomicObjectState
 
 import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,9 +16,9 @@ class RdObject[A](var state: AtomicObjectState[A]) {
 		state = state.applyOp(op)
 
 		/** FIXME: Trigger onStateModified? I guess we don't want to make this function async too.\
-		  *     Proposing original division into two sub RDO types:  AutoSyncRdObject & ManualRdObject.\
-		  *     The former works with async methods and refreshes automatically (push), the other is manual
-		  *     (pull). The async one might require raising events for everything.
+		  * Proposing original division into two sub RDO types:  AutoSyncRdObject & ManualRdObject.\
+		  * The former works with async methods and refreshes automatically (push), the other is manual
+		  * (pull). The async one might require raising events for everything.
 		  */
 		//onStateModified(state)
 	}
