@@ -2,17 +2,23 @@ package chatapp
 
 import chatapp.model.{Chat, ChatMessage}
 import chatapp.ui.REPL
-import rover.Client.OAuth2Credentials
-import rover.rdo.RdObject
-import rover.{HTTPClient, Session}
+import rover.rdo.comms.Client.OAuth2Credentials
+import rover.rdo.{ObjectId, RdObject}
+import rover.rdo.comms.{HTTPClient, Session}
 
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-class ChatClient(serverAddress: String) extends
-	HTTPClient[List[ChatMessage]](serverAddress, (credentials) => credentials.accessToken) {
+// TODO: Rover-Credentials should contain the ObjectId of object user has access to, for now ObjectId.from suffices
+
+class ChatClient(serverAddress: String)
+	extends HTTPClient[List[ChatMessage]](
+		serverAddress,
+		(credentials: OAuth2Credentials) => ObjectId.from(credentials.accessToken)
+	)
+{
 //	Client.OAuth2Client[List[ChatMessage]](serverAddress, (credentials: OAuth2Credentials) => credentials.accessToken, Map[String, AtomicObjectState[List[ChatMessage]]]()) {
 	var session: Session[OAuth2Credentials, List[ChatMessage]] = null
 	var user: ChatUser = null
@@ -37,7 +43,8 @@ class ChatClient(serverAddress: String) extends
 			val credentials = new OAuth2Credentials("fake credentials",  "fake credentials")
 			this.user = user
 			session = createSession(credentials)
-			val state = importRDO("chat")
+
+			val state = importRDO(ObjectId.chatAppChat)
 			val rdo = new RdObject[List[ChatMessage]](state)
 			chat = Chat.fromRDO(rdo)
 //			println(s"Initial state: ${chat.state}")
@@ -60,7 +67,7 @@ class ChatClient(serverAddress: String) extends
 //				val serverState = await(importRDO("chat")).asInstanceOf[RdObject[List[ChatMessage]]]
 //				chat = Chat.fromRDO(serverState, updater)
 //				println(s"Updating state from update loop...")
-				val state = importRDO("chat")
+				val state = importRDO(ObjectId.chatAppChat)
 //				println(s"Got updated state: $state")
 				//				chat = Chat.fromRDO(rdo, updater)
 

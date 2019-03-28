@@ -1,42 +1,40 @@
-package rover
+package rover.rdo.comms
 
 import chatapp.ChatServer
-import rover.rdo.RdObject
+import rover.rdo.ObjectId
 import rover.rdo.state.AtomicObjectState
 
-import scala.concurrent.Future
+import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.async.Async.{async, await}
+import scala.concurrent.Future
 
 class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) {
-  type Id = String
-  type Identifier = C => Id
+  type Id = C => ObjectId
 
-  // TODO: Move this to the proper place
-  type ObjectId = Id
-
+  // FIXME hardcoded
+  val chatObjectId = ObjectId.from("chat")
 
   // TODO: Implement errors
   def importRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
     async{
-      if (objectId == "chat"){
+      if (objectId == chatObjectId){
         ChatServer.CHAT_STATE.asInstanceOf[AtomicObjectState[A]]
       }
-      else null
+      else throw new RuntimeException(s"Cannot import RDO with id ${objectId.asString}, not supported")
     }
   }
 
   def importRDOwithState[A](objectId: ObjectId, stateId: String): Future[Unit] = {
     // TODO: Hacks
     async {
-      if (objectId == "chat") {
+      if (objectId == chatObjectId) {
         val atomicState = server.getAtomicStateWithId(stateId)
         client.appendedState(stateId, atomicState)
       }
-//      else null
+//      else new RuntimeException(s"Cannot import RDO with state ${stateId} with object id ${objectId.asString}, not supported")
     }
   }
-  
+
   def exportRDOwithState[A](stateId: String): Future[Unit] = {
     async{
       val atomicState = client.getAtomicStateWithId(stateId)
@@ -52,10 +50,12 @@ object Session {
   private var _CACHE = Map[Session[Any, Any]#Id, Session[Any, Any]]()
 
   def get[C, A](sessionId: Session[C, A]#Id): Session[C, A] = {
-    _CACHE.get(sessionId).asInstanceOf[Session[C, A]]
+    //fixme: ugly
+    _CACHE.get(sessionId.asInstanceOf[Session[Any, Any]#Id])
+        .asInstanceOf[Session[C, A]]
   }
 
   def set[C, A](sessionId: Session[C, A]#Id, session: Session[C, A]): Unit = {
-    _CACHE = _CACHE.updated(sessionId, session.asInstanceOf[Session[Any, Any]])
+    _CACHE = _CACHE.updated(sessionId.asInstanceOf[Session[Any, Any]#Id], session.asInstanceOf[Session[Any, Any]])
   }
 }
