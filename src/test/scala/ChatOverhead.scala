@@ -1,7 +1,12 @@
+import java.io.{BufferedWriter, FileWriter}
+
+import au.com.bytecode.opencsv.CSVWriter
 import chatapp.{Chat, ChatMessage, ChatUser}
 import rover.rdo.client.RdObject
 import rover.rdo.state.AtomicObjectState
+import scala.collection.JavaConversions._
 
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class NonRoverChat(var state: List[ChatMessage]) {
@@ -94,15 +99,34 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
         val roverDurations = benchmarkRoverChat(randomMessages)
         val nonRoverDurations = benchmarkNonRoverChat(randomMessages)
 
+        val csv = toCSV(randomMessages, nonRoverDurations, roverDurations)
+
         val meanRoverDurations = Statistics.getMean(roverDurations)
         val meanNonRoverDurations = Statistics.getMean(nonRoverDurations)
         println(s"RoverChat: mean time in nano: $meanRoverDurations, std: ${Statistics.getStd(roverDurations)}")
         println(s"NonRoverChat: mean time in nano $meanNonRoverDurations, std: ${Statistics.getStd(nonRoverDurations)}")
 
         println("\n")
-        println(f"Overhead: ${math.abs(meanRoverDurations.asInstanceOf[Double] - meanNonRoverDurations.asInstanceOf[Double])/ meanNonRoverDurations.asInstanceOf[Double] }%1.4f")
+        println(f"Overhead: ${Statistics.getOverhead(meanNonRoverDurations.asInstanceOf[Double], meanRoverDurations.asInstanceOf[Double])}%1.4f")
 
     }
+
+    def toCSV(messages: List[ChatMessage],
+             baselineDurations: List[Long],
+             compareDurations: List[Long]): Unit = {
+
+        val outputFile = new BufferedWriter(new FileWriter("./result.csv"))
+        val csvWriter = new CSVWriter(outputFile)
+        val csvHeader = Array("id", "messages", "nonRoverDurations", "roverDurations")
+        var listOfRecords = new ListBuffer[Array[String]]()
+        listOfRecords += csvHeader
+        for (i <- Range.inclusive(1, messages.length)){
+               listOfRecords += Array(i.toString, messages(i-1).toString, baselineDurations(i-1).toString, compareDurations(i-1).toString)
+        }
+        csvWriter.writeAll(listOfRecords.toList)
+        outputFile.close()
+    }
+
 }
 
 object ChatOverheadMicroBench {
