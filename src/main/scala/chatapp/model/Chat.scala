@@ -39,6 +39,12 @@ class Chat(
 
 	/* SelfSyncing impl */
 
+	def sendSynchronous(message: ChatMessage): Unit = {
+		val op: AtomicObjectState[List[ChatMessage]]#Op = s => s :+ message
+		modifyState(op)
+	}
+
+
 	override def onStateModified(oldState: AtomicObjectState[List[ChatMessage]]): Future[Unit] = {
 		_onStateModified(state)
 	}
@@ -84,6 +90,7 @@ object Chat {
 	}
 }
 
+
 object test {
 	def main(args: Array[String]): Unit ={
 		val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("Welcome", new ChatUser("system"))))
@@ -128,6 +135,7 @@ object test {
 
 	}
 }
+
 
 
 

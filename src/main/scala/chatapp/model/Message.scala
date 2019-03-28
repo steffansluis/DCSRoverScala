@@ -24,6 +24,7 @@ extends Serializable {
 			case _ => false
 		}
 	}
+
 }
 
 object ChatMessage {
