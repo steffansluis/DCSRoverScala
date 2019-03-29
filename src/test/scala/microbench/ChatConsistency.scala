@@ -1,3 +1,5 @@
+package microbench
+
 import chatapp.{Chat, ChatConflictResolutionMechanism, ChatMessage, ChatUser}
 import rover.rdo.CommonAncestor
 import rover.rdo.conflict.ConflictedState

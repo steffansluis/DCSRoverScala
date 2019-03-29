@@ -4,6 +4,8 @@ import rover.rdo.RdObject
 import rover.rdo.conflict.{CommonAncestor, ConflictedState, DiffWithAncestor}
 import rover.rdo.state.AtomicObjectState
 
+import scala.util.Random
+
 
 class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {
 
@@ -27,8 +29,63 @@ object Poll {
 		return new Poll(question, choices, AtomicObjectState.initial(Votes(choices)))
 	}
 
+	def apply(question: String, numChoices: Int): Poll  = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new Poll(question, choices, AtomicObjectState.initial(Votes(choices)))
+	}
+
 	def copyOf(poll: Poll): Poll = {
 		return new Poll(poll.question, poll.choices, poll.state)
+	}
+
+	def toNonRoverInit(poll: Poll): NonRoverPoll = {
+		return NonRoverPoll(poll.question, poll.choices)
+	}
+
+	def generateRandom(question: String, numChoices: Int): Poll = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new Poll(question, choices, AtomicObjectState.initial(Votes.generateRandom(choices)))
+	}
+}
+
+class NonRoverPoll(val question: String,
+				   val choices: List[PollChoice],
+				   val votes: Votes) {
+
+	def cast(vote: PollChoice): Unit =  {
+		votes.add(vote)
+	}
+
+	def result: PollResult = {
+		return new PollResult(votes)
+	}
+}
+
+object NonRoverPoll {
+	def apply(question: String, choices: List[PollChoice]): NonRoverPoll = {
+		return new NonRoverPoll(question, choices, Votes(choices))
+	}
+
+	def apply(question: String, numChoices: Int): NonRoverPoll  = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new NonRoverPoll(question, choices, Votes(choices))
+	}
+
+	def generateRandom(question: String, numChoices: Int): NonRoverPoll = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new NonRoverPoll(question, choices, Votes.generateRandom(choices))
 	}
 }
 
@@ -70,6 +127,10 @@ object Votes {
 
 	def apply(votes: Map[PollChoice, Int]): Votes = {
 		return new Votes(votes.withDefaultValue(0))
+	}
+
+	def generateRandom(choices: List[PollChoice]): Votes = {
+		return new Votes(choices.map(choice => (choice, Random.nextInt())).toMap)
 	}
 }
 
