@@ -9,7 +9,7 @@ import rover.rdo.state.{AtomicObjectState, BasicAtomicObjectState, MergeOperatio
  *
   * @tparam A The state implementation type
   */
-trait ConflictResolutionMechanism[A] {
+trait ConflictResolutionMechanism[A <: Serializable] {
 	/**
 	  * <p>
 	  *     Resolves the conflict contained in the ConflictedState argument
@@ -34,7 +34,7 @@ trait ConflictResolutionMechanism[A] {
 	def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A]
 }
 
-case class ResolvedMerge[A](conflictedState: ConflictedState[A], resultingState: A, implicit val conflictResolutionMechanism: ConflictResolutionMechanism[A]) {
+case class ResolvedMerge[A <: Serializable](conflictedState: ConflictedState[A], resultingState: A, implicit val conflictResolutionMechanism: ConflictResolutionMechanism[A]) {
 	def asAtomicObjectState: AtomicObjectState[A] = {
 		val mergeOperationExectured = new MergeOperation[A](conflictedState.serverVersion, conflictedState.incomingVersion, conflictResolutionMechanism)
 		new BasicAtomicObjectState[A](conflictedState.serverVersion.objectId, resultingState, conflictedState.serverVersion.log.appended(mergeOperationExectured))

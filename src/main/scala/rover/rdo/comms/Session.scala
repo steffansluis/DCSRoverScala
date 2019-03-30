@@ -8,7 +8,7 @@ import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) {
+class Session[C, A <: Serializable](credentials: C, server: Server[C, A], client: Client[C, A]) {
   type Id = C => ObjectId
 
   // FIXME hardcoded
@@ -47,15 +47,15 @@ class Session[C, A](credentials: C, server: Server[C, A], client: Client[C, A]) 
 
 object Session {
   // TODO: Probably better to make this mutable? It needs to be persistent in any case
-  private var _CACHE = Map[Session[Any, Any]#Id, Session[Any, Any]]()
+  private var _CACHE = Map[Session[Any, Serializable]#Id, Session[Any, Serializable]]()
 
-  def get[C, A](sessionId: Session[C, A]#Id): Session[C, A] = {
+  def get[C, A <: Serializable](sessionId: Session[C, A]#Id): Session[C, A] = {
     //fixme: ugly
-    _CACHE.get(sessionId.asInstanceOf[Session[Any, Any]#Id])
+    _CACHE.get(sessionId.asInstanceOf[Session[Any, Serializable]#Id])
         .asInstanceOf[Session[C, A]]
   }
 
-  def set[C, A](sessionId: Session[C, A]#Id, session: Session[C, A]): Unit = {
-    _CACHE = _CACHE.updated(sessionId.asInstanceOf[Session[Any, Any]#Id], session.asInstanceOf[Session[Any, Any]])
+  def set[C, A <: Serializable](sessionId: Session[C, A]#Id, session: Session[C, A]): Unit = {
+    _CACHE = _CACHE.updated(sessionId.asInstanceOf[Session[Any, Serializable]#Id], session.asInstanceOf[Session[Any, Serializable]])
   }
 }

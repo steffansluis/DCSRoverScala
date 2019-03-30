@@ -22,7 +22,7 @@ import scala.util.Try
   * @tparam C type of credentials used for sessions (e.g. OAuth2Credentials for OAuth type of auth)
   * @tparam A type of state of the application (e.g. "Votes" in a poll app, List[Messages] in a chatapp)
 */
-class Server[C, A]( protected val address: String,
+class Server[C, A <: Serializable]( protected val address: String,
                     protected val mapToClients: Map[Session[C, A]#Id, Client[C, A]],
                     protected var mapToStates: Map[String, AtomicObjectState[A]]) {
 
@@ -59,10 +59,10 @@ class Server[C, A]( protected val address: String,
 	}
 }
 
-class HTTPServer[A](
+class HTTPServer[A <: Serializable](
 	val port: Int = 8888,
-	_mapToClients: Map[Session[OAuth2Credentials, A]#Id, Client[OAuth2Credentials, A]] = Map(),
-	_mapToStates: Map[String, AtomicObjectState[A]] = Map()
+	_mapToClients: Map[Session[OAuth2Credentials, A]#Id, Client[OAuth2Credentials, A]] = Map[Session[OAuth2Credentials, A]#Id, Client[OAuth2Credentials, A]](),
+	_mapToStates: Map[String, AtomicObjectState[A]] = Map[String, AtomicObjectState[A]]()
 )(
 	implicit val encodeA: Encoder[A],
 	implicit val decodeA: Decoder[A]
@@ -135,7 +135,7 @@ class HTTPServer[A](
 	def start(): Unit = {
 //		val
 		println(s"Starting server at port $port")
-		lol.http.Server.listen(port)(Hello.orElse(Api).orElse { case _ => NotFound })
+// UNCOMM		lol.http.Server.listen(port)(Hello.orElse(Api).orElse { case _ => NotFound })
 
 //		async {
 //			while(true) {}
@@ -146,12 +146,12 @@ class HTTPServer[A](
 
 object Server {
 //  val CHAT_STATE = AtomicObjectState.initial(List[Any]())
-	def atAddress[C, A](address: String): Server[C, A] = {
+	def atAddress[C, A <: Serializable](address: String): Server[C, A] = {
 		return new Server[C, A](address, Map[Session[C, A]#Id, Client[C,A]](), Map[String, AtomicObjectState[A]]())
 	}
 
 	// TODO: Document, "get map of server"? ...what?
-    def getMapOfServer[C, A](server: Server[C, A]): Map[String, AtomicObjectState[A]] ={
+    def getMapOfServer[C, A <: Serializable](server: Server[C, A]): Map[String, AtomicObjectState[A]] ={
         return server.mapToStates
 	}
 }

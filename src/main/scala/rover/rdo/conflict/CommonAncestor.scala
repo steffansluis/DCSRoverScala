@@ -11,7 +11,7 @@ import rover.rdo.state.{AtomicObjectState, StateLog}
   * @param one Some RDO
   * @param other Some other RDO
   */
-class CommonAncestor[A](private val one: AtomicObjectState[A], private val other: AtomicObjectState[A]) extends AtomicObjectState[A] { // todo: fixme with a deferred state
+class CommonAncestor[A <: Serializable](private val one: AtomicObjectState[A], private val other: AtomicObjectState[A]) extends AtomicObjectState[A] { // todo: fixme with a deferred state
 	if (one.objectId != other.objectId) {
 		throw new RuntimeException("Given AtomicObjectStates do not share same objectId. Not allowed to compare the two.")
 	}
@@ -55,11 +55,11 @@ class CommonAncestor[A](private val one: AtomicObjectState[A], private val other
 }
 
 object CommonAncestor {
-	def from[A](serverVersion: RdObject[A], incomingVersion: RdObject[A]): CommonAncestor[A] = {
+	def from[A <: Serializable](serverVersion: RdObject[A], incomingVersion: RdObject[A]): CommonAncestor[A] = {
 		return new CommonAncestor[A](serverVersion.state, incomingVersion.state)
 	}
 
-	def from[A](serverVersion: AtomicObjectState[A], incomingVersion: AtomicObjectState[A]): CommonAncestor[A] = {
+	def from[A <: Serializable](serverVersion: AtomicObjectState[A], incomingVersion: AtomicObjectState[A]): CommonAncestor[A] = {
 		return new CommonAncestor[A](serverVersion, incomingVersion)
 	}
 }

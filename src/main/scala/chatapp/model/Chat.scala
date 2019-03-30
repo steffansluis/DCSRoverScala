@@ -67,18 +67,18 @@ with SelfSyncingRdo[List[ChatMessage]]
 
 object Chat {
 	def fromRDO(rdo: RdObject[List[ChatMessage]]): Chat = {
-		new Chat(rdo.state)
+		new Chat(rdo.state, null)
 	}
 
 	def copyOf(chat: Chat) = {
-		new Chat(chat.state)
+		new Chat(chat.state, chat.credentials)
 	}
 }
 
 object test {
 	def main(args: Array[String]): Unit ={
 		val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("Welcome", new ChatUser("system"))))
-		val chat = new Chat(initialState)
+		val chat = new Chat(initialState, null)
 		val THREAD_SLEEP = 1000
 
 		//stage 1: Copying

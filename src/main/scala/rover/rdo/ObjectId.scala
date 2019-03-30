@@ -8,10 +8,19 @@ case class ObjectId(asString: String) {
 	}
 
 	override def equals(o: Any): Boolean = {
-		case o: String => this.asString == o
-		case o: ObjectId => this.asString == o.asString
+		o match {
+			case string: String => this.asString == string
+			case objectId: ObjectId => this.asString == objectId.asString
+			case _ => false
+		}
+	}
 
-		case _ => false
+	override def canEqual(that: Any): Boolean = {
+		that match {
+			case _: String => true
+			case _: ObjectId => true
+			case _ => false
+		}
 	}
 }
 
