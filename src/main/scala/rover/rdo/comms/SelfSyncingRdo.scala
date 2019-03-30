@@ -19,7 +19,7 @@ import rover.rdo.state.AtomicObjectState
   * API methods to manage the syncing of the RdObject.
   * @tparam A
   */
-trait SelfSyncingRdo[A] {
+trait SelfSyncingRdo[A <: Serializable] {
 	// This is trait appliable on RdObjects. We want access to RdObject internals from here
 	this: RdObject[A] =>
 

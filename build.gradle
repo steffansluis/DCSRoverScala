@@ -15,14 +15,23 @@ configurations {
 dependencies {
     implementation 'org.scala-lang:scala-library:2.12.8'
     implementation 'org.scala-lang.modules:scala-async_2.12:0.9.7'
+
     compile 'com.monovore:decline_2.12:0.6.1'
+
+    /* Simple and easy http framework (spark) + requests lib (unirest) */
+    implementation "com.sparkjava:spark-core:2.8.0"
+    implementation "com.mashape.unirest:unirest-java:1.4.9"
+
+    /* criteo lolhttp framework + json library */
     compile 'org.typelevel:cats-core_2.12:1.5.0'
     compile group: 'com.criteo.lolhttp', name: 'lolhttp_2.12', version: '10.0.0'
     compile group: 'com.criteo.lolhttp', name: 'lolhtml_2.12', version: '10.0.0'
     compile group: 'com.criteo.lolhttp', name: 'loljson_2.12', version: '10.0.0'
+    // json lib for scala (with cats)
     compile group: 'io.circe', name: 'circe-core_2.12', version: '0.11.1'
     compile group: 'io.circe', name: 'circe-generic_2.12', version: '0.11.1'
     compile group: 'io.circe', name: 'circe-optics_2.12', version: '0.11.0'
+
     testImplementation 'org.pegdown:pegdown:1.4.2'
     testImplementation 'org.scalatest:scalatest_2.12:3.0.6'
     testImplementation 'junit:junit:4.12'

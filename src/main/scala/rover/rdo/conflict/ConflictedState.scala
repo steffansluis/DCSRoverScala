@@ -3,7 +3,7 @@ package rover.rdo.conflict
 import rover.rdo.RdObject
 import rover.rdo.state.AtomicObjectState
 
-class ConflictedState[A] private (val serverVersion: AtomicObjectState[A], val incomingVersion: AtomicObjectState[A]) {
+class ConflictedState[A <: Serializable] private (val serverVersion: AtomicObjectState[A], val incomingVersion: AtomicObjectState[A]) {
 	def commonAncestor: CommonAncestor[A] = {
 		return new CommonAncestor[A](serverVersion, incomingVersion)
 	}
@@ -33,11 +33,11 @@ class ConflictedState[A] private (val serverVersion: AtomicObjectState[A], val i
 }
 
 object ConflictedState {
-	def from[A](serverVersion: RdObject[A], incomingVersion: RdObject[A]): ConflictedState[A] = {
+	def from[A <: Serializable](serverVersion: RdObject[A], incomingVersion: RdObject[A]): ConflictedState[A] = {
 		return new ConflictedState[A](serverVersion.state, incomingVersion.state)
 	}
 
-	def from[A](serverVersion: AtomicObjectState[A], incomingVersion: AtomicObjectState[A]): ConflictedState[A] = {
+	def from[A <: Serializable](serverVersion: AtomicObjectState[A], incomingVersion: AtomicObjectState[A]): ConflictedState[A] = {
 		return new ConflictedState[A](serverVersion, incomingVersion)
 	}
 }

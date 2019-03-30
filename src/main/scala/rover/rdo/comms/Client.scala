@@ -19,10 +19,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * @param mapToStates, map to up-to-date version of local RDOs
   */
 //FIXME: create a unique id for each RDO upon its creation
-class Client[C, A] (
+class Client[C, A <: Serializable] (
     protected val serverAddress: String,
     protected val identifier: Session[C, A]#Id,
-    protected var mapToStates: Map[String, AtomicObjectState[A]] = Map()
+    protected var mapToStates: Map[String, AtomicObjectState[A]] = Map[String, AtomicObjectState[A]]()
 ){
 
     val server: Server[C, A] = Server.atAddress[C,A](serverAddress)
@@ -47,14 +47,14 @@ object Client {
             ObjectId.from(accessToken)
         }
     }
-    type OAuth2Client[A] = Client[OAuth2Credentials, A]
+    type OAuth2Client[A <: Serializable] = Client[OAuth2Credentials, A]
 
-    def oauth2[A](): OAuth2Client[A] = {
+    def oauth2[A <: Serializable](): OAuth2Client[A] = {
         null
     }
 }
 
-class HTTPClient[A](
+class HTTPClient[A <: Serializable](
     _serverAddress: String,
     _identifier: Session[OAuth2Credentials, A]#Id
 )(

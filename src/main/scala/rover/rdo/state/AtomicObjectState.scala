@@ -2,7 +2,7 @@ package rover.rdo.state
 
 import rover.rdo.ObjectId
 
-trait AtomicObjectState[A] {
+trait AtomicObjectState[A <: Serializable] extends Serializable {
 	type Op = A => A
 
 	def objectId: ObjectId
@@ -16,7 +16,8 @@ trait AtomicObjectState[A] {
 }
 
 // TODO: make ctor private?
-class InitialAtomicObjectState[A] (identityState: A) extends AtomicObjectState[A] {
+@SerialVersionUID(54376L)
+class InitialAtomicObjectState[A <: Serializable] (identityState: A) extends AtomicObjectState[A] {
 	override def objectId: ObjectId = ObjectId.generateNew()
 
 	override def immutableState: A = identityState
@@ -27,9 +28,17 @@ class InitialAtomicObjectState[A] (identityState: A) extends AtomicObjectState[A
 		val resultingState = operation.apply(immutableState)
 		return new BasicAtomicObjectState[A](this.objectId, resultingState, log)
 	}
+
+	override def equals(o: Any): Boolean = {
+		o match {
+			case o: InitialAtomicObjectState[A] => this.immutableState.equals(o.immutableState)
+			case _ => false
+		}
+	}
 }
 
-class BasicAtomicObjectState[A] (val objectId: ObjectId, val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
+@SerialVersionUID(75436L)
+class BasicAtomicObjectState[A <: Serializable] (val objectId: ObjectId, val immutableState: A, val log: StateLog[A]) extends AtomicObjectState[A] {
 
 	def applyOp(operation: Op): AtomicObjectState[A] = {
 		// Operation must apply itself to the state
@@ -63,7 +72,7 @@ object AtomicObjectState {
 	  * @tparam A
 	  * @return
 	  */
-	def initial[A](value: A): AtomicObjectState[A] = {
+	def initial[A <: Serializable](value: A): AtomicObjectState[A] = {
 		return new InitialAtomicObjectState[A](value)
 	}
 
@@ -71,7 +80,7 @@ object AtomicObjectState {
 //		return log.latestState.resultingAtomic
 //	}
 
-	def byApplyingOp[A](stateFrom: AtomicObjectState[A], op: AtomicObjectState[A]#Op): AtomicObjectState[A] = {
+	def byApplyingOp[A <: Serializable](stateFrom: AtomicObjectState[A], op: AtomicObjectState[A]#Op): AtomicObjectState[A] = {
 		val resultingState = op.apply(stateFrom.immutableState)
 		val appendedLog = stateFrom.log.appended(new OpAppliedRecord[A](op, stateFrom))
 

@@ -40,7 +40,8 @@ class PollResult(private  val votes: Votes) {
 
 case class PollChoice(choice: String)
 
-class Votes(val map: Map[PollChoice, Int]) {
+@SerialVersionUID(123L)
+class Votes(val map: Map[PollChoice, Int]) extends Serializable {
 	/**
 	  * Adds the given poll choice to the votes cast. Also: immutable object pattern.
 	  * @param vote The vote-choice to cast

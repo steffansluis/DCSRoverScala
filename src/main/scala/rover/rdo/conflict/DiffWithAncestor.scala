@@ -2,7 +2,7 @@ package rover.rdo.conflict
 
 import rover.rdo.state.{AtomicObjectState, RecordedStateModification}
 
-class DiffWithAncestor[A](private val child: AtomicObjectState[A], private val ancestor: AtomicObjectState[A]) {
+class DiffWithAncestor[A <: Serializable](private val child: AtomicObjectState[A], private val ancestor: AtomicObjectState[A]) {
 
 	def asList: List[RecordedStateModification[A]] = {
 		for(i <- child.log.asList) {

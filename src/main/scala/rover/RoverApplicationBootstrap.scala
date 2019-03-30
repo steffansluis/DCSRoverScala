@@ -19,7 +19,7 @@ import scala.concurrent.duration.Duration
   * @tparam C
   * @tparam RDO
   */
-abstract class RoverApplicationBootstrap[A, C, RDO <: RdObject[A]] (
+abstract class RoverApplicationBootstrap[A <: Serializable, C, RDO <: RdObject[A]] (
 		private val client: Client[C, A],
 		private val credentials: C
 ) {
@@ -35,7 +35,7 @@ abstract class RoverApplicationBootstrap[A, C, RDO <: RdObject[A]] (
 
 }
 
-class RdObjectWithHttpSelfSync[A, C](
+class RdObjectWithHttpSelfSync[A <: Serializable, C](
 	val _beforeSync: A => SyncDecision,
 	val _afterSync: A => Unit,
 	val session: Session[C, A]
@@ -72,6 +72,6 @@ class RdObjectWithHttpSelfSync[A, C](
 	}
 
 	override protected def pushLocalVersion(localVersion: AtomicObjectState[A]): Unit = {
-		session.exportRDOwithState(localVersion)
+		session.exportRDOwithState(localVersion.objectId.asString)
 	}
 }

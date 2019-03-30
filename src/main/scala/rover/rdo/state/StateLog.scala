@@ -7,7 +7,7 @@ import rover.rdo.conflict.resolve.ConflictResolutionMechanism
   * Represents a general Logged Operation
   * @tparam A The type of the application state data structure
   */
-trait RecordedStateModification[A]{
+trait RecordedStateModification[A <: Serializable] extends Serializable {
 	/* Parent state on which the modification took place */
 	def parent: Option[AtomicObjectState[A]]
 
@@ -24,7 +24,8 @@ trait RecordedStateModification[A]{
 //	def rebase(newParent: AtomicObjectState[A]): LogRecord[A]
 }
 
-case class StateInitializedLogRecord[A](state: A) extends RecordedStateModification[A] {
+@SerialVersionUID(324234L)
+case class StateInitializedLogRecord[A <: Serializable](state: A) extends RecordedStateModification[A] {
 	// has no parent, it's an initial state
 	override def parent: Option[AtomicObjectState[A]] = None
 
@@ -38,7 +39,8 @@ case class StateInitializedLogRecord[A](state: A) extends RecordedStateModificat
 //	}
 }
 
-case class OpAppliedRecord[A](op: AtomicObjectState[A]#Op, stateFrom: AtomicObjectState[A]) extends RecordedStateModification[A] {
+@SerialVersionUID(7453L)
+case class OpAppliedRecord[A <: Serializable](op: AtomicObjectState[A]#Op, stateFrom: AtomicObjectState[A]) extends RecordedStateModification[A] {
 	override def parent: Option[AtomicObjectState[A]] = Some(stateFrom)
 
 	override def appliedFunction: AtomicObjectState[A] => AtomicObjectState[A] = (stateFrom: AtomicObjectState[A]) => {
@@ -50,7 +52,11 @@ case class OpAppliedRecord[A](op: AtomicObjectState[A]#Op, stateFrom: AtomicObje
 //	}
 }
 
-case class MergeOperation[A](currentParent: AtomicObjectState[A], incomingParent: AtomicObjectState[A], resolver: ConflictResolutionMechanism[A]) extends RecordedStateModification[A] {
+@SerialVersionUID(37698L)
+case class MergeOperation[A <: Serializable](
+	currentParent: AtomicObjectState[A],
+	incomingParent: AtomicObjectState[A],
+	resolver: ConflictResolutionMechanism[A]) extends RecordedStateModification[A] {
 
 	// TODO: can possibly go wrong in ancestor determination, need to investiagate if the ancestor can be in the incoming change-list
 	override def parent: Option[AtomicObjectState[A]] = Some(currentParent)
@@ -70,7 +76,8 @@ case class MergeOperation[A](currentParent: AtomicObjectState[A], incomingParent
 /**
   * This class encapsulates all the information stored to log regarding a single RDO state
   */
-class StateLog[A] private (private val logList: List[RecordedStateModification[A]] = List()) {
+@SerialVersionUID(87654L)
+class StateLog[A <: Serializable] private (private val logList: List[RecordedStateModification[A]] = List()) extends Serializable {
 
     // Since the lists are immutable, there is no append but rather a new object
 	def appended(logRecord: RecordedStateModification[A]): StateLog[A] = {
@@ -97,12 +104,12 @@ object StateLog {
 	  * @tparam A
 	  * @return
 	  */
-	def withInitialState[A](a: A): StateLog[A] = {
+	def withInitialState[A <: Serializable](a: A): StateLog[A] = {
 		val initial = StateInitializedLogRecord[A](a)
 	    return StateLog.empty.appended(initial)
 	}
 	
-	def empty[A]: StateLog[A] = {
+	def empty[A <: Serializable]: StateLog[A] = {
 		return new StateLog[A]()
 	}
 }

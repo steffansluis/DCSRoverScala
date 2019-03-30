@@ -12,7 +12,7 @@ import rover.rdo.conflict.ConflictedState
   *     A framework supplied implementation of `ConflictResolutionMechanism`
   * </p>
   */
-class AppendIncomingChangesMergeResolve[A] extends ConflictResolutionMechanism[A] {
+class AppendIncomingChangesMergeResolve[A <: Serializable] extends ConflictResolutionMechanism[A] {
 		
 	override def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A] = {
 		val changesIncoming = conflictedState.changesIncomingRelativeToCommonAncestor
