@@ -1,9 +1,28 @@
 package rover.rdo.comms.fresh_attempt
 
 import rover.rdo.ObjectId
+import rover.rdo.conflict.resolve.ConflictResolutionMechanism
 import rover.rdo.state.AtomicObjectState
 
+/**
+  * A server handles the reconciliation of incoming versions of states/objects
+  * and being a repository for said states/objects. <br/><br/>
+  *
+  * Each "server" implementation only handles one type of object/state.
+  * That is, if multiple states/objects are required, multiple "servers"
+  * are required as well.
+  * @tparam A
+  */
 abstract class Server[A <: Serializable] {
+
+	/**
+	  * <p>
+	  *     Requests a new object/state to be created
+	  * </p>
+	  * @return The new object/state
+	  */
+	def create(): AtomicObjectState[A]
+
 	/**
 	  * <p>
 	  *     Request the most recent object's state
@@ -11,7 +30,7 @@ abstract class Server[A <: Serializable] {
 	  * </p>
 	  * @param objectId The id of the RdObject/State
 	  */
-	def get(objectId: ObjectId): AtomicObjectState[A]
+	def get(objectId: ObjectId): Option[AtomicObjectState[A]]
 
 	/**
 	  * <p>
@@ -35,3 +54,8 @@ abstract class Server[A <: Serializable] {
 	  */
 	def status(objectId: ObjectId) // TODO: return type with relevant info (latest version?)
 }
+
+final case class ServerConfiguration[A <: Serializable](
+	initialStateValue: A,
+	conflictResolutionMechanism: ConflictResolutionMechanism[A]
+)

@@ -9,7 +9,9 @@ import rover.rdo.state.AtomicObjectState
   * @tparam A The state itself
   */
 abstract class Client[A <: Serializable] {
-	def fetch(objectId: ObjectId)
+	def created(): AtomicObjectState[A]
+
+	def fetch(objectId: ObjectId): AtomicObjectState[A]
 
 	def push(state: AtomicObjectState[A])
 }
