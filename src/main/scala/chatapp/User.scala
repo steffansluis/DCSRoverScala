@@ -1,8 +1,7 @@
 package chatapp
 
 
-import io.circe._, io.circe.syntax._
-import io.circe.{Encoder, Json}
+import io.circe.{Encoder, Json, _}
 
 class ChatUser(val username: String) {
 }
@@ -17,7 +16,7 @@ object ChatUser {
 		)
 	}
 
-	implicit val decodeAtomicObjectState: Decoder[ChatUser] = new Decoder[ChatUser] {
+	implicit val decodeUser: Decoder[ChatUser] = new Decoder[ChatUser] {
 		final def apply(c: HCursor): Decoder.Result[ChatUser] =
 			for {
 				username <- c.downField("username").as[String]

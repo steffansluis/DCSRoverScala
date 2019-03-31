@@ -1,6 +1,7 @@
 package rover.rdo.conflict.provided
 
 import rover.rdo.conflict.{ConflictResolutionMechanism, ConflictedState, ResolvedMerge}
+import io.circe._
 
 /**
   * <p>
@@ -12,7 +13,7 @@ import rover.rdo.conflict.{ConflictResolutionMechanism, ConflictedState, Resolve
   *     A framework supplied implementation of `ConflictResolutionMechanism`
   * </p>
   */
-class AppendIncomingChangesMergeResolve[A] extends ConflictResolutionMechanism[A] {
+class AppendIncomingChangesMergeResolve[A](implicit encodeA: Encoder[A], decodeA: Decoder[A]) extends ConflictResolutionMechanism[A] {
 		
 	override def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A] = {
 		val changesIncoming = conflictedState.changesIncomingRelativeToCommonAncestor

@@ -1,6 +1,7 @@
 package rover.rdo.state
 
 import rover.rdo.conflict.{ConflictResolutionMechanism, ConflictedState}
+import io.circe._
 
 /**
   * Represents a general Logged Operation
@@ -23,7 +24,7 @@ trait RecordedStateModification[A]{
 //	def rebase(newParent: AtomicObjectState[A]): LogRecord[A]
 }
 
-case class StateInitializedLogRecord[A](state: A) extends RecordedStateModification[A] {
+case class StateInitializedLogRecord[A](state: A)(implicit encodeA: Encoder[A], decodeA: Decoder[A]) extends RecordedStateModification[A] {
 	// has no parent, it's an initial state
 	override def parent: Option[AtomicObjectState[A]] = None
 
@@ -37,7 +38,7 @@ case class StateInitializedLogRecord[A](state: A) extends RecordedStateModificat
 //	}
 }
 
-case class OpAppliedRecord[A](op: AtomicObjectState[A]#Op, stateFrom: AtomicObjectState[A]) extends RecordedStateModification[A] {
+case class OpAppliedRecord[A](op: AtomicObjectState[A]#Op, stateFrom: AtomicObjectState[A])(implicit encodeA: Encoder[A], decodeA: Decoder[A]) extends RecordedStateModification[A] {
 	override def parent: Option[AtomicObjectState[A]] = Some(stateFrom)
 
 	override def appliedFunction: AtomicObjectState[A] => AtomicObjectState[A] = (stateFrom: AtomicObjectState[A]) => {
@@ -69,7 +70,7 @@ case class MergeOperation[A](currentParent: AtomicObjectState[A], incomingParent
 /**
   * This class encapsulates all the information stored to log regarding a single RDO state
   */
-class StateLog[A] private (private val logList: List[RecordedStateModification[A]] = List()) {
+class StateLog[A] private (private val logList: List[RecordedStateModification[A]] = List())(implicit encodeA: Encoder[A], decodeA: Decoder[A]) {
 
     // Since the lists are immutable, there is no append but rather a new object
 	def appended(logRecord: RecordedStateModification[A]): StateLog[A] = {
@@ -96,12 +97,12 @@ object StateLog {
 	  * @tparam A
 	  * @return
 	  */
-	def withInitialState[A](a: A): StateLog[A] = {
+	def withInitialState[A](a: A)(implicit encodeA: Encoder[A], decodeA: Decoder[A]): StateLog[A] = {
 		val initial = StateInitializedLogRecord[A](a)
 	    return StateLog.empty.appended(initial)
 	}
 	
-	def empty[A]: StateLog[A] = {
+	def empty[A](implicit encodeA: Encoder[A], decodeA: Decoder[A]): StateLog[A] = {
 		return new StateLog[A]()
 	}
 }

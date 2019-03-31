@@ -24,7 +24,7 @@ object ChatMessage {
 		)
 	}
 
-	implicit val decodeAtomicObjectState: Decoder[ChatMessage] = new Decoder[ChatMessage] {
+	implicit val decodeChatMessage: Decoder[ChatMessage] = new Decoder[ChatMessage] {
 		final def apply(c: HCursor): Decoder.Result[ChatMessage] =
 			for {
 				author <- c.downField("author").as[ChatUser]

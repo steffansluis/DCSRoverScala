@@ -1,6 +1,7 @@
 package rover.rdo.conflict
 
 import rover.rdo.state.{AtomicObjectState, BasicAtomicObjectState, MergeOperation}
+import io.circe._
 
 /**
   * An interface for any mechanism that can resolve
@@ -33,7 +34,7 @@ trait ConflictResolutionMechanism[A] {
 	def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A]
 }
 
-case class ResolvedMerge[A](conflictedState: ConflictedState[A], resultingState: A, implicit val conflictResolutionMechanism: ConflictResolutionMechanism[A]) {
+case class ResolvedMerge[A](conflictedState: ConflictedState[A], resultingState: A, implicit val conflictResolutionMechanism: ConflictResolutionMechanism[A])(implicit encodeA: Encoder[A], decodeA: Decoder[A]) {
 	def asAtomicObjectState: AtomicObjectState[A] = {
 		val mergeOperationExectured = new MergeOperation[A](conflictedState.serverVersion, conflictedState.incomingVersion, conflictResolutionMechanism)
 		new BasicAtomicObjectState[A](resultingState, conflictedState.serverVersion.log.appended(mergeOperationExectured))

@@ -22,6 +22,7 @@ dependencies {
     compile group: 'com.criteo.lolhttp', name: 'loljson_2.12', version: '10.0.0'
     compile group: 'io.circe', name: 'circe-core_2.12', version: '0.11.1'
     compile group: 'io.circe', name: 'circe-generic_2.12', version: '0.11.1'
+    compile group: 'io.circe', name: 'circe-shapes_2.12', version: '0.11.1'
     compile group: 'io.circe', name: 'circe-optics_2.12', version: '0.11.0'
     testImplementation 'org.pegdown:pegdown:1.4.2'
     testImplementation 'org.scalatest:scalatest_2.12:3.0.6'

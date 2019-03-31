@@ -1,17 +1,14 @@
 package rover
 
+import cats.effect.IO
+import cats.implicits._
+import io.circe._
 import lol.http._
 import lol.json._
 import rover.Client.OAuth2Credentials
 import rover.rdo.state.AtomicObjectState
-import cats.implicits._
-import cats.effect.IO
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.async.Async.{async, await}
-import io.circe._
-import rover.rdo.state.AtomicObjectState
 
 /**
   * Class encapsulating a Client, who interacts with a Server within a Session
@@ -22,7 +19,7 @@ import rover.rdo.state.AtomicObjectState
   */
 //FIXME: create a unique, static id for each RDO upon its creation
 class Client[C, A](protected val serverAddress: String, protected val identifier: Session[C, A]#Identifier,
-                   protected var mapToStates: Map[String, AtomicObjectState[A]] = Map[String, AtomicObjectState[A]]()){
+                   protected var mapToStates: Map[String, AtomicObjectState[A]] = Map[String, AtomicObjectState[A]]())(implicit encodeA: Encoder[A], decodeA: Decoder[A]) {
 
 
   val server = Server.fromAddress[C,A](serverAddress)

@@ -21,7 +21,7 @@ import scala.util.Try
 */
 class Server[C, A]( protected val address: String,
                     protected val mapToClients: Map[Session[C, A]#Identifier, Client[C, A]],
-                    protected var mapToStates: Map[String, AtomicObjectState[A]]) {
+                    protected var mapToStates: Map[String, AtomicObjectState[A]])(implicit encodeA: Encoder[A], decodeA: Decoder[A]) {
 
   //FIXME: Does the server has its own creds? It merely keeps track of clients' creds
 //  val credentials = null
@@ -67,14 +67,14 @@ class HTTPServer[A](
 //	implicit val stateDecoder: Decoder[AtomicObjectState[List[ChatMessage]]] = deriveDecoder[AtomicObjectState[List[ChatMessage]]]
 	implicit val rdoEncoder: Encoder[RdObject[A]] = Encoder.forProduct1("state")(rdo => (rdo.state))
 
-  implicit val decodeAtomicObjectState: Decoder[AtomicObjectState[A]] = new Decoder[AtomicObjectState[A]] {
-		final def apply(c: HCursor): Decoder.Result[AtomicObjectState[A]] =
-			for {
-				immutableState <- c.downField("immutableState").as[A]
-			} yield {
-				AtomicObjectState.initial(immutableState)
-			}
-	}
+//  implicit val decodeAtomicObjectState: Decoder[AtomicObjectState[A]] = new Decoder[AtomicObjectState[A]] {
+//		final def apply(c: HCursor): Decoder.Result[AtomicObjectState[A]] =
+//			for {
+//				immutableState <- c.downField("immutableState").as[A]
+//			} yield {
+//				AtomicObjectState.initial(immutableState)
+//			}
+//	}
 
 //  val mapToState = _mapToStates;
 
@@ -105,15 +105,16 @@ class HTTPServer[A](
 //        val existing: RdObject[A] = new RdObject[A](state)
         request.readAs[Json].map { jsonBody =>
           println(s"Request string: ${jsonBody.toString()}")
-          val updatedState = jsonBody.as[AtomicObjectState[A]]
-          if (updatedState.isLeft) {
-            val failure = updatedState.left.get
-            InternalServerError(Error(s"${failure.message}: \n${failure.history.mkString("\n")}"))
-          } else {
-            val updated = updatedState.right.get
-            deliveredState(id, updated)
+//          val updatedState = jsonBody.as[AtomicObjectState[A]]
+//          if (updatedState.isLeft) {
+//            val failure = updatedState.left.get
+//            InternalServerError(Error(s"${failure.message}: \n${failure.history.mkString("\n")}"))
+//          } else {
+//            val updated = updatedState.right.get
+//          }
+            val updated = AtomicObjectState.fromJson[A](jsonBody).get
+            receivedState(id, updated)
             Ok(new RdObject(updated).asJson)
-          }
           //          val updatedRDO:  = state.copy(
 //            text = root.text.string.getOption(jsonBody).getOrElse(state.text),
 //            done = root.done.boolean.getOption(jsonBody).getOrElse(state.done)
@@ -139,7 +140,7 @@ class HTTPServer[A](
 
 object Server {
 //  val CHAT_STATE = AtomicObjectState.initial(List[Any]())
-  def fromAddress[C, A](address: String): Server[C, A] = {
+  def fromAddress[C, A](address: String)(implicit encodeA: Encoder[A], decodeA: Decoder[A]): Server[C, A] = {
     return new Server[C, A](address, Map[Session[C, A]#Identifier, Client[C,A]](), Map[String, AtomicObjectState[A]]())
   }
 
