@@ -3,6 +3,7 @@ package chatapp
 import chatapp.model.{Chat, ChatMessage}
 import chatapp.ui.REPL
 import rover.rdo.comms.Client.OAuth2Credentials
+import rover.rdo.comms.fresh_attempt.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
 import rover.rdo.{ObjectId, RdObject}
 import rover.rdo.comms.{HTTPClient, Session}
 
@@ -13,17 +14,11 @@ import scala.concurrent.{Await, Future}
 
 // TODO: Rover-Credentials should contain the ObjectId of object user has access to, for now ObjectId.from suffices
 
-class ChatClient(serverAddress: String)
-	extends HTTPClient[List[ChatMessage]](
-		serverAddress,
-		(credentials: OAuth2Credentials) => ObjectId.from(credentials.accessToken)
-	)
-{
-//	Client.OAuth2Client[List[ChatMessage]](serverAddress, (credentials: OAuth2Credentials) => credentials.accessToken, Map[String, AtomicObjectState[List[ChatMessage]]]()) {
-	var session: Session[OAuth2Credentials, List[ChatMessage]] = null
+class ChatAppClient(serverAddress: String)  {
+	
 	var user: ChatUser = null
 	var chat: Chat = null;
-
+	
 	val printer = (string: String) => {
 		val cls = s"${string.split("\n").map(c => s"${REPL.UP}${REPL.ERASE_LINE_BEFORE}${REPL.ERASE_LINE_AFTER}").mkString("")}"
 		// Prepend two spaces to match input indentation of "> "
@@ -32,59 +27,51 @@ class ChatClient(serverAddress: String)
 		s"${REPL.SAVE_CURSOR}$cls\r$text${REPL.RESTORE_CURSOR}"
 	}
 
-		// TODO: This is hacky, figure out a better way to do this
+	// TODO: This is hacky, figure out a better way to do this
 	val updater: Chat#Updater = state => async {
-		val text = state.immutableState.takeRight(ChatClient.SIZE).map(m => m.toString()).mkString("\n")
+		val text = state.immutableState.takeRight(ChatAppClient.SIZE).map(m => m.toString()).mkString("\n")
 		print(s"${printer(text)}")
 	}
 
 	def login(user: ChatUser): Future[Unit] = {
 		async {
-			val credentials = new OAuth2Credentials("fake credentials",  "fake credentials")
 			this.user = user
-			session = createSession(credentials)
-
-			val state = importRDO(ObjectId.chatAppChat)
-			val rdo = new RdObject[List[ChatMessage]](state)
-			chat = Chat.fromRDO(rdo)
+			
+			val client = new ClientForServerOverHttp(ServerHttpEndpointPaths.atServer(serverAddress, "chatapp"))
+			val chat = client.fetch(ObjectId.chatAppChat)
+			
 //			println(s"Initial state: ${chat.state}")
 		}
 	}
 
-		def send(message: String): Future[Unit] = {
+	def send(message: String): Future[Unit] = {
 //		println(s"Sending message with intial state: ${chat.state}")
 		async {
-			await(chat.send(new ChatMessage(message, user)))
-			exportRDO(chat.state)
-			//			await(session.exportRDO("chat", chat))
-//			updater(chat.state)
+			await(
+				chat.send(new ChatMessage(message, user))
+			)
+			
+			chat.requestSync()
 		}
 	}
 
 	def updateLoop(): Future[Unit] = {
 		async {
 			while(true) {
-//				val serverState = await(importRDO("chat")).asInstanceOf[RdObject[List[ChatMessage]]]
-//				chat = Chat.fromRDO(serverState, updater)
 //				println(s"Updating state from update loop...")
-				val state = importRDO(ObjectId.chatAppChat)
+				chat.requestSync()
 //				println(s"Got updated state: $state")
-				//				chat = Chat.fromRDO(rdo, updater)
-
-				appendedState("chat", state)
-				chat.state = state
 
 //				println(s"Rendering chat state: ${chat.state}")
 				updater(chat.state) // Force re-render
-				Thread.sleep(ChatClient.UPDATE_DELAY_MS)
+				Thread.sleep(ChatAppClient.UPDATE_DELAY_MS)
 			}
 		}
 	}
 
 	def render(): Future[Unit] = {
-//		val chat = new Chat(updater)
 		println(s"  Welcome to Rover Chat! Connected to: $serverAddress")
-		print((1 to ChatClient.SIZE).map(i => "\n").mkString(""))
+		print((1 to ChatAppClient.SIZE).map(i => "\n").mkString(""))
 
 		val reader = () => {
 			print("> ")
@@ -97,7 +84,7 @@ class ChatClient(serverAddress: String)
 			await(p)
 				// This clears the input line
 				print(s"${REPL.UP}${REPL.ERASE_LINE_AFTER}")
-				chat.state.immutableState.takeRight(ChatClient.SIZE).map(m => s"${m.toString()}").mkString("\n")
+				chat.state.immutableState.takeRight(ChatAppClient.SIZE).map(m => s"${m.toString()}").mkString("\n")
 			}
 		}
 		val repl: REPL[String] = new REPL(reader, executor, printer)
@@ -108,13 +95,13 @@ class ChatClient(serverAddress: String)
 
 }
 
-object ChatClient {
+object ChatAppClient {
 	val SIZE = 10
 	val UPDATE_DELAY_MS = 2000
 
 	def main(args: Array[String]): Unit = {
-		val serverAddress = "localhost"
-		val client = new ChatClient(serverAddress)
+		val serverAddress = "http://localhost:8080"
+		val client = new ChatAppClient(serverAddress)
 		val f = async {
 			await(client.login(ChatUser.Steffan))
 			await(client.render())
@@ -126,21 +113,21 @@ object ChatClient {
 
 object Bot {
 		def main(args: Array[String]): Unit = {
-		val serverAddress = "localhost"
-		val client = new ChatClient(serverAddress)
-		val f = async {
-			await(client.login(ChatUser.Giannis))
-			client.updateLoop() // TODO: Memory leak
+			val serverAddress = "localhost"
+			val client = new ChatAppClient(serverAddress)
+			val f = async {
+				await(client.login(ChatUser.Giannis))
+				client.updateLoop() // TODO: Memory leak
 
 		// Simulate conversation
-			Thread.sleep(3000)
-			await(client.send("Hey man!"))
-
-			Thread.sleep(3000)
-			await(client.send("How's it going?"))
-
-			Thread.sleep(10000)
-			await(client.send("Yea man I'm good"))
+				Thread.sleep(3000)
+				await(client.send("Hey man!"))
+	
+				Thread.sleep(3000)
+				await(client.send("How's it going?"))
+	
+				Thread.sleep(10000)
+				await(client.send("Yea man I'm good"))
 		}
 
 		Await.result(f, Duration.Inf)

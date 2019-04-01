@@ -1,19 +1,52 @@
 package chatapp
 
 import chatapp.model.ChatMessage
+import rover.rdo.ObjectId
 import rover.rdo.comms.HTTPServer
+import rover.rdo.comms.fresh_attempt.{Server, ServerConfiguration}
+import rover.rdo.comms.fresh_attempt.http.{ServerHttpInterface, VolatileServer}
 import rover.rdo.state.AtomicObjectState
 
+// Previous impl:
+//class ChatServer extends HTTPServer[List[ChatMessage]](_mapToStates = Map("chat" -> ChatServer.CHAT_STATE)) {
+//
+//}
 
-class ChatServer extends HTTPServer[List[ChatMessage]](_mapToStates = Map("chat" -> ChatServer.CHAT_STATE)) {
-
+class ChatServer(private val serverImpl: VolatileServer[List[ChatMessage]]) extends Server[List[ChatMessage]] {
+	
+	private val restInterface = new ServerHttpInterface[List[ChatMessage]]("chatapp", 8080, serverImpl)
+	
+	override def create(): AtomicObjectState[List[ChatMessage]] = {
+		return serverImpl.create()
+	}
+	
+	override def get(objectId: ObjectId): Option[AtomicObjectState[List[ChatMessage]]] = {
+		return serverImpl.get(objectId)
+	}
+	
+	override def accept(incomingState: AtomicObjectState[List[ChatMessage]]): Unit = {
+		serverImpl.accept(incomingState)
+	}
+	
+	override def status(objectId: ObjectId): Unit = {
+		serverImpl.status(objectId)
+	}
 }
 
 object ChatServer {
-	val CHAT_STATE = AtomicObjectState.initial(List[ChatMessage](new ChatMessage("test", ChatUser.Steffan)))
+	//new ChatMessage("test", ChatUser.Steffan))
+	val INITIAL = List[ChatMessage]()
+	
+	val startingServerStateStore = Map(ObjectId.chatAppChat -> AtomicObjectState.initial(INITIAL))
 
 	def main(args: Array[String]): Unit = {
-		val server = new ChatServer
-		server.start()
+		
+		val serverConfig = new ServerConfiguration[List[ChatMessage]](INITIAL, new ChatConflictResolutionMechanism)
+		val serverImpl = new VolatileServer[List[ChatMessage]](serverConfig, startingServerStateStore)
+		val server = new ChatServer(serverImpl)
+		
+		println("Chat application server has started")
+		
+		// will it keep on running?
 	}
 }

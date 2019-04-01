@@ -2,6 +2,7 @@ package rover.rdo.comms.fresh_attempt.http
 
 import rover.rdo.ObjectId
 import rover.rdo.comms.fresh_attempt.Server
+import spark.Spark
 import spark.Spark._
 
 /**
@@ -16,10 +17,13 @@ import spark.Spark._
   */
 class ServerHttpInterface[A <: Serializable](
 	private val applicationName: String,
+	private val port: Integer,
 	private val serverImpl: Server[A]
 ) {
-	val endpointPaths = ServerHttpEndpointPaths.forApp(applicationName)
+	val endpointPaths = ServerHttpEndpointPaths.forServer(applicationName)
 
+	Spark.port(port)
+	
 	get(endpointPaths.createEndpoint, (request, result) => {
 		val newlyCreated = serverImpl.create()
 
@@ -32,7 +36,7 @@ class ServerHttpInterface[A <: Serializable](
 	})
 
 	// Create an endpoint for the "get" server method
-	get(endpointPaths.getEndpoint, (request, result) => {
+	get(endpointPaths.getEndpoint + "/:objectId", (request, result) => {
 		val objectIdStringInRequestParam = request.params(":objectId")
 		val objectId = ObjectId.from(objectIdStringInRequestParam)
 
@@ -66,15 +70,19 @@ class ServerHttpInterface[A <: Serializable](
 	})
 }
 
-final case class ServerHttpEndpointPaths private (private val applicationName: String) {
-	def createEndpoint = s"$applicationName/create"
-	def getEndpoint = s"$applicationName/get/:objectId"
-	def acceptEndpoint = s"$applicationName/accept"
-	def statusEndpoint = s"$applicationName/status"
+final case class ServerHttpEndpointPaths private (private val prefix: String) {
+	def createEndpoint = s"$prefix/create"
+	def getEndpoint = s"$prefix/get"
+	def acceptEndpoint = s"$prefix/accept"
+	def statusEndpoint = s"$prefix/status"
 }
 
 object ServerHttpEndpointPaths {
-	def forApp(appName: String): ServerHttpEndpointPaths = {
+	def forServer(appName: String): ServerHttpEndpointPaths = {
 		return new ServerHttpEndpointPaths(appName)
+	}
+	
+	def atServer(serverAddress: String, appName: String): ServerHttpEndpointPaths = {
+		return new ServerHttpEndpointPaths(s"$serverAddress/$appName")
 	}
 }
