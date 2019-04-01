@@ -25,15 +25,13 @@ trait RecordedStateModification[A <: Serializable] extends Serializable {
 }
 
 @SerialVersionUID(324234L)
-case class StateInitializedLogRecord[A <: Serializable](state: A) extends RecordedStateModification[A] {
+case class StateInitializedLogRecord[A <: Serializable](atomicObjectState: InitialAtomicObjectState[A]) extends RecordedStateModification[A] {
+	
+	private val root: AtomicObjectState[A] = atomicObjectState
 	
 	override def parent: Option[AtomicObjectState[A]] = Some(root)
-	
-	private val root: AtomicObjectState[A] = AtomicObjectState.initial(state)
 
-	override def appliedFunction: AtomicObjectState[A] => AtomicObjectState[A] = _ => {
-			root
-		}
+	override def appliedFunction: AtomicObjectState[A] => AtomicObjectState[A] = _ => root
 
 //	override def rebase(newParent: AtomicObjectState[A]): LogRecord[A] = {
 //		// is not influenced by the parent
@@ -56,9 +54,12 @@ case class OpAppliedRecord[A <: Serializable](op: AtomicObjectState[A]#Op, state
 
 @SerialVersionUID(37698L)
 case class MergeOperation[A <: Serializable](
-	currentParent: AtomicObjectState[A],
-	incomingParent: AtomicObjectState[A],
-	resolver: ConflictResolutionMechanism[A]) extends RecordedStateModification[A] {
+		currentParent: AtomicObjectState[A],
+		incomingParent: AtomicObjectState[A],
+		resolver: ConflictResolutionMechanism[A]
+	)
+	extends RecordedStateModification[A]
+{
 
 	// TODO: can possibly go wrong in ancestor determination, need to investiagate if the ancestor can be in the incoming change-list
 	override def parent: Option[AtomicObjectState[A]] = Some(currentParent)
@@ -106,7 +107,7 @@ object StateLog {
 	  * @tparam A
 	  * @return
 	  */
-	def withInitialState[A <: Serializable](a: A): StateLog[A] = {
+	def forInitialAtomicObjectState[A <: Serializable](a: InitialAtomicObjectState[A]): StateLog[A] = {
 		val initial = StateInitializedLogRecord[A](a)
 	    return StateLog.empty.appended(initial)
 	}

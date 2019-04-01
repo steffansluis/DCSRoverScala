@@ -26,18 +26,21 @@ class InitialAtomicObjectState[A <: Serializable] (identityState: A) extends Ato
 
 	override def immutableState: A = identityState
 	
-	override def log: StateLog[A] = StateLog.withInitialState(this.identityState)
+	override val log: StateLog[A] = StateLog.forInitialAtomicObjectState(this)
 	
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
-		val resultingState = operation.apply(immutableState)
-		return new BasicAtomicObjectState[A](this.objectId, resultingState, log)
-	}
-
-	override def equals(o: Any): Boolean = {
-		o match {
-			case o: InitialAtomicObjectState[A] => this.immutableState.equals(o.immutableState)
-			case _ => false
-		}
+//		val resultingState = operation.apply(immutableState)
+//		return new BasicAtomicObjectState[A](this.objectId, resultingState, log)
+		
+		// Operation must apply itself to the state
+		// but we want the state to take in the operations
+		// so that the framework can record the op
+		val result = operation.apply(this.immutableState)
+		
+		// Record the operation in the Log
+		val updatedLog = log.appended(OpAppliedRecord(operation, this))
+		
+		return new BasicAtomicObjectState[A](this.objectId, result, updatedLog)
 	}
 }
 
