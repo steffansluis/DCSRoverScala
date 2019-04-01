@@ -28,7 +28,8 @@ class ClientForServerOverHttp[A <: Serializable](
 	}
 
 	override def fetch(objectId: ObjectId): AtomicObjectState[A] = {
-		println(s"Fetch: ${objectId.asString}")
+		println(s"Fetching: ${objectId.asString}")
+		
 		val fetchResponse = Unirest.get(endpointPaths.getEndpoint + "/{objectId}")
     		.routeParam("objectId", objectId.asString)
 			.asString()
@@ -39,7 +40,7 @@ class ClientForServerOverHttp[A <: Serializable](
 	}
 
 	override def push(state: AtomicObjectState[A]): Unit = {
-		println(s"Push")
+		println(s"Pushing: ${state.objectId}")
 		
 		val serialized = new SerializedAtomicObjectState[A](state)
 		Unirest.post(endpointPaths.acceptEndpoint).body(serialized.asString)

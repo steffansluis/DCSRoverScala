@@ -35,9 +35,18 @@ class ChatServer(private val serverImpl: VolatileServer[List[ChatMessage]]) exte
 
 object ChatServer {
 	//new ChatMessage("test", ChatUser.Steffan))
-	val INITIAL = List[ChatMessage]()
+	private val INITIAL = List[ChatMessage]()
 	
-	val startingServerStateStore = Map(ObjectId.chatAppChat -> AtomicObjectState.initial(INITIAL))
+	private val startingServerStateStore = {
+		val initialAtomicObjectState = AtomicObjectState.initial(INITIAL)
+		
+		println(s"Created objectId for chat testing: ${initialAtomicObjectState.objectId}")
+		// set for testing
+		ObjectId.chatAppChat = initialAtomicObjectState.objectId
+		
+		// return
+		Map(initialAtomicObjectState.objectId -> initialAtomicObjectState)
+	}
 
 	def main(args: Array[String]): Unit = {
 		
