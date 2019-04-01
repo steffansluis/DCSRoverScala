@@ -2,7 +2,11 @@
 .idea
 .gradle
 out
+bin
 
+.classpath
+.project
+.settings
 *.jar
 *.iml
 log
