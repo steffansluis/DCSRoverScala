@@ -33,7 +33,7 @@ class SerializedAtomicObjectState[A <: Serializable] (state: AtomicObjectState[A
 	lazy val asString: String = {
 		val encoded = new Base64().encodeToString(asBytes)
 		
-		println(encoded)
+//		println(encoded)
 		//return
 		encoded
 	}
@@ -84,7 +84,7 @@ object DeserializedAtomicObjectState {
 	}
 	
 	def apply[A <: Serializable](string: String): DeserializedAtomicObjectState[A] = {
-		println(string)
+//		println(string)
 		val decoded = new Base64().decode(string)
 		return new AtomicObjectStateAsByteArray[A](decoded)
 	}

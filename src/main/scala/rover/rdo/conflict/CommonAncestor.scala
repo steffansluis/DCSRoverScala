@@ -26,6 +26,15 @@ class CommonAncestor[A <: Serializable](private val one: AtomicObjectState[A], p
 			for (j <- other.log.asList.reverse) {
 
 				// FIXME: There can be more than one parent, if ancestor is in an "incoming change" of a merge, it will not find it
+
+// TODO hacky fix:
+//				if (i == j) {
+//					i match {
+//						case parent:
+//					}
+//					return i.
+//				}
+
 				//noinspection ExistsEquals
 				if (i.parent.exists(parentI => j.parent.exists(parentJ => parentI == parentJ))) {
 					val ancestor = i.parent.get
@@ -33,6 +42,9 @@ class CommonAncestor[A <: Serializable](private val one: AtomicObjectState[A], p
 				}
 			}
 		}
+
+
+
 		// TODO: typed exception, better error logs
 		throw new RuntimeException("Failed to determine a common ancestor")
 	}

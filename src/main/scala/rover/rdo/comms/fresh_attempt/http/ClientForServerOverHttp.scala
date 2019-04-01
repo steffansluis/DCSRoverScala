@@ -1,6 +1,7 @@
 package rover.rdo.comms.fresh_attempt.http
 
 import kong.unirest.Unirest
+import org.apache.commons.codec.binary.Base64
 import rover.rdo.ObjectId
 import rover.rdo.comms.fresh_attempt.Client
 import rover.rdo.state.AtomicObjectState
@@ -28,7 +29,7 @@ class ClientForServerOverHttp[A <: Serializable](
 	}
 
 	override def fetch(objectId: ObjectId): AtomicObjectState[A] = {
-		println(s"Fetching: ${objectId.asString}")
+//		println(s"Fetching: ${objectId.asString}")
 		
 		val fetchResponse = Unirest.get(endpointPaths.getEndpoint + "/{objectId}")
     		.routeParam("objectId", objectId.asString)
@@ -40,10 +41,17 @@ class ClientForServerOverHttp[A <: Serializable](
 	}
 
 	override def push(state: AtomicObjectState[A]): Unit = {
-		println(s"Pushing: ${state.objectId}")
+		println(s"          Pushing: ${state.immutableState}")
 		
 		val serialized = new SerializedAtomicObjectState[A](state)
-		Unirest.post(endpointPaths.acceptEndpoint).body(serialized.asString)
+		val body = Unirest.post(endpointPaths.acceptEndpoint)
+    		.header("Content-Type", "application/octet-stream")
+			.body(serialized.asString)
+    		.asEmpty()
+
+//		val henk = new Base64().decode(body.get().uniPart().getValue)
+
+//		println(henk)
 
 		// TODO: ?
 	}

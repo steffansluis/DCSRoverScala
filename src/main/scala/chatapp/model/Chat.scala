@@ -56,13 +56,16 @@ class Chat(
 	}
 
 	override protected def fetchServerVersion(): AtomicObjectState[List[ChatMessage]] = {
-		// TODO: moe to SelfSyncing?
+		// TODO: move to SelfSyncing?
+//		println("Chat: going to fetch")
 		val fetched = client.fetch(this.state.objectId)
 		return fetched
 	}
 
 	override protected def pushLocalVersion(localVersion: AtomicObjectState[List[ChatMessage]]): Unit = {
-		client.push(this.state)
+		// TODO: move to SelfSyncing?
+//		println("Chat: going to push")
+		client.push(localVersion)
 	}
 }
 

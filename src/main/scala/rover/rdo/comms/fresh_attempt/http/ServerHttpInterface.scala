@@ -23,6 +23,7 @@ class ServerHttpInterface[A <: Serializable](
 	val endpointPaths = ServerHttpEndpointPaths.forServer(applicationName)
 
 	Spark.port(port)
+	Spark.before("/*", (q, a) => println(q.pathInfo()))
 	
 	get(endpointPaths.createEndpoint, (request, result) => {
 		val newlyCreated = serverImpl.create()
@@ -41,7 +42,7 @@ class ServerHttpInterface[A <: Serializable](
 		val objectIdStringInRequestParam = request.params(":objectId")
 		val objectId = ObjectId.from(objectIdStringInRequestParam)
 		
-		println(s"Get for objectId: $objectIdStringInRequestParam")
+//		println(s"Get for objectId: $objectIdStringInRequestParam")
 
 		val latestOnServer = serverImpl.get(objectId)
 			.getOrElse({
@@ -49,7 +50,7 @@ class ServerHttpInterface[A <: Serializable](
 				throw new Exception("Server did not have requested object/state...")
 			})
 
-		println("   was found on server")
+//		println("   was found on server")
 		
 		val serializedState = new SerializedAtomicObjectState[A](latestOnServer)
 
@@ -61,14 +62,16 @@ class ServerHttpInterface[A <: Serializable](
 	})
 
 	post(endpointPaths.acceptEndpoint, (request, result) => {
-		val bytes = request.bodyAsBytes()
-		val deserializedAtomicObjectState = new AtomicObjectStateAsByteArray[A](bytes)
+
+		val postedContent = request.body()
+		val deserializedAtomicObjectState = DeserializedAtomicObjectState.apply[A](postedContent)
 
 		val incomingState = deserializedAtomicObjectState.asAtomicObjectState
+		println(s"request for Accept: ${incomingState.immutableState}")
 		serverImpl.accept(incomingState)
 
 		result.status(200)
-		result
+		Unit
 	})
 
 	get(endpointPaths.statusEndpoint, (request, result) => {
