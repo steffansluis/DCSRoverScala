@@ -26,11 +26,13 @@ trait RecordedStateModification[A <: Serializable] extends Serializable {
 
 @SerialVersionUID(324234L)
 case class StateInitializedLogRecord[A <: Serializable](state: A) extends RecordedStateModification[A] {
-	// has no parent, it's an initial state
-	override def parent: Option[AtomicObjectState[A]] = None
+	
+	override def parent: Option[AtomicObjectState[A]] = Some(root)
+	
+	private val root: AtomicObjectState[A] = AtomicObjectState.initial(state)
 
 	override def appliedFunction: AtomicObjectState[A] => AtomicObjectState[A] = _ => {
-			AtomicObjectState.initial(state)
+			root
 		}
 
 //	override def rebase(newParent: AtomicObjectState[A]): LogRecord[A] = {
