@@ -12,6 +12,7 @@ import rover.rdo.conflict.ConflictedState
   *     A framework supplied implementation of `ConflictResolutionMechanism`
   * </p>
   */
+@SerialVersionUID(784968L)
 class AppendIncomingChangesMergeResolve[A <: Serializable] extends ConflictResolutionMechanism[A] {
 		
 	override def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A] = {
