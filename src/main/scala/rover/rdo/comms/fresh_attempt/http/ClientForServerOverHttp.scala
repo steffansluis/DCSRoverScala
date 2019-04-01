@@ -28,7 +28,10 @@ class ClientForServerOverHttp[A <: Serializable](
 	}
 
 	override def fetch(objectId: ObjectId): AtomicObjectState[A] = {
-		val fetchResponse = Unirest.get(endpointPaths.getEndpoint).asBinary()
+		val fetchResponse = Unirest.get(endpointPaths.getEndpoint + "/{objectId}")
+    		.routeParam("objectId", objectId.asString)
+			.asBinary()
+		
 		val deserialized = DeserializedAtomicObjectState[A](fetchResponse.getRawBody)
 
 		return deserialized.asAtomicObjectState

@@ -1,5 +1,7 @@
-package rover.rdo.comms.fresh_attempt
+package rover.rdo.comms.fresh_attempt.http
+
 import rover.rdo.ObjectId
+import rover.rdo.comms.fresh_attempt.{Server, ServerConfiguration}
 import rover.rdo.conflict.ConflictedState
 import rover.rdo.state.AtomicObjectState
 
@@ -8,7 +10,7 @@ import rover.rdo.state.AtomicObjectState
   * as HashMaps. These are not persisted between restarts of the server.
   * @tparam A The actual state type (i.e. `AtomicObjectState[A]`)
   */
-class VolatileServer[A <: Serializable] private (
+class VolatileServer[A <: Serializable] (
 	val serverConfiguration: ServerConfiguration[A],
 	var storage: Map[ObjectId, AtomicObjectState[A]]
 ) extends Server[A] {

@@ -18,7 +18,7 @@ class Session[C, A <: Serializable](credentials: C, server: Server[C, A], client
   def importRDO(objectId: ObjectId): Future[AtomicObjectState[A]] = {
     async{
       if (objectId == chatObjectId){
-        ChatServer.CHAT_STATE.asInstanceOf[AtomicObjectState[A]]
+        ChatServer.INITIAL.asInstanceOf[AtomicObjectState[A]]
       }
       else throw new RuntimeException(s"Cannot import RDO with id ${objectId.asString}, not supported")
     }

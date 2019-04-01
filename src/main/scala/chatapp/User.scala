@@ -4,7 +4,8 @@ package chatapp
 import io.circe._, io.circe.syntax._
 import io.circe.{Encoder, Json}
 
-class ChatUser(val username: String) {
+@SerialVersionUID(643287L)
+class ChatUser(val username: String) extends Serializable {
 }
 
 object ChatUser {

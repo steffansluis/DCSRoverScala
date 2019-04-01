@@ -2,6 +2,10 @@ package rover.rdo.comms.fresh_attempt.http
 
 import java.io._
 
+// keep this import! Otherwise java.io.Serializable is used due to import java.io._
+// Even though scala.Serializable is just trait with java.io.Serializable, it will break the app (v2.12.8)
+import scala.Serializable
+
 import rover.rdo.state.AtomicObjectState
 
 class SerializedAtomicObjectState[A <: Serializable] (state: AtomicObjectState[A]) {

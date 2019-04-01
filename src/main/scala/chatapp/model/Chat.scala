@@ -1,7 +1,7 @@
 package chatapp.model
 
-import chatapp.{ChatConflictResolutionMechanism, ChatUser}
-import rover.rdo.RdObject
+import chatapp.{ChatConflictResolutionMechanism, ChatServer, ChatUser}
+import rover.rdo.{ObjectId, RdObject}
 import rover.rdo.comms.Client.OAuth2Credentials
 import rover.rdo.comms.{SelfSyncingRdo, SyncDecision}
 import rover.rdo.comms.SyncDecision.SyncDecision
@@ -66,9 +66,13 @@ with SelfSyncingRdo[List[ChatMessage]]
 }
 
 object Chat {
-	def fromRDO(rdo: RdObject[List[ChatMessage]]): Chat = {
-		new Chat(rdo.state, null)
+	def fromServer(server: ChatServer): Unit = {
+		server.get(ObjectId.chatAppChat)
 	}
+	
+//	def fromRDO(rdo: RdObject[List[ChatMessage]]): Chat = {
+//		new Chat(rdo.state, null)
+//	}
 
 	def copyOf(chat: Chat) = {
 		new Chat(chat.state, chat.credentials)

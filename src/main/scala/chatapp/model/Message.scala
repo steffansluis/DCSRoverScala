@@ -5,9 +5,12 @@ import io.circe.syntax._
 import io.circe.{Encoder, Json, _}
 
 
-class ChatMessage(val body: String,
-                  val author: ChatUser,
-                  val timestamp: Long = java.time.Instant.now.getEpochSecond()) {
+@SerialVersionUID(235465L)
+class ChatMessage(
+	val body: String,
+    val author: ChatUser,
+    val timestamp: Long = java.time.Instant.now.getEpochSecond())
+extends Serializable {
 
 	//	def encoded: Json = Encoder.forProduct2("author", "body")(m => m.body, m.author.username)
 
