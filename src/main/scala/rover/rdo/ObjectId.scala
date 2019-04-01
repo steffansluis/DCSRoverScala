@@ -27,7 +27,7 @@ case class ObjectId(asString: String) {
 object ObjectId {
 	// FIXME: temporary during dev
 	var chatAppChat: ObjectId = {
-		from("d2a81346-219c-467d-87dc-21c679db7199")
+		from("chat")
 	}
 
 	def from(string: String): ObjectId = {
@@ -35,7 +35,8 @@ object ObjectId {
 	}
 
 	def generateNew(): ObjectId = {
-		val uuid = UUID.randomUUID()
+//		val uuid = UUID.randomUUID()
+		val uuid = "chat"
 		return ObjectId(uuid.toString())
 	}
 }

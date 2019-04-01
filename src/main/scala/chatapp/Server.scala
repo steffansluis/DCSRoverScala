@@ -4,7 +4,7 @@ import chatapp.model.ChatMessage
 import rover.rdo.ObjectId
 import rover.rdo.comms.HTTPServer
 import rover.rdo.comms.fresh_attempt.{Server, ServerConfiguration}
-import rover.rdo.comms.fresh_attempt.http.{ServerHttpInterface, VolatileServer}
+import rover.rdo.comms.fresh_attempt.http.{ServerHttpInterface, EphemeralServer}
 import rover.rdo.state.AtomicObjectState
 
 // Previous impl:
@@ -12,7 +12,7 @@ import rover.rdo.state.AtomicObjectState
 //
 //}
 
-class ChatServer(private val serverImpl: VolatileServer[List[ChatMessage]]) extends Server[List[ChatMessage]] {
+class ChatServer(private val serverImpl: EphemeralServer[List[ChatMessage]]) extends Server[List[ChatMessage]] {
 	
 	private val restInterface = new ServerHttpInterface[List[ChatMessage]]("chatapp", 8080, serverImpl)
 	
@@ -51,7 +51,7 @@ object ChatServer {
 	def main(args: Array[String]): Unit = {
 		
 		val serverConfig = new ServerConfiguration[List[ChatMessage]](INITIAL, new ChatConflictResolutionMechanism)
-		val serverImpl = new VolatileServer[List[ChatMessage]](serverConfig, startingServerStateStore)
+		val serverImpl = new EphemeralServer[List[ChatMessage]](serverConfig, startingServerStateStore)
 		val server = new ChatServer(serverImpl)
 		
 		println("Chat application server has started")

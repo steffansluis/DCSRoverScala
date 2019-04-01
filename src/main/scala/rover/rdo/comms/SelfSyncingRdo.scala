@@ -49,7 +49,10 @@ trait SelfSyncingRdo[A <: Serializable] {
 
 	final def requestSync(): Unit = {
 		val syncDecision = beforeSync(this.state.immutableState)
+//		println(s"Sync requested, decision: ${syncDecision}")
+
 		if (syncDecision == sync) {
+//			println("Chat is going to sync")
 			// push local, the server will reconcile the incoming version with own
 			pushLocalVersion(this.state)
 
@@ -67,6 +70,9 @@ trait SelfSyncingRdo[A <: Serializable] {
 			// TODO: decide, give new version before or after updating this.state?
 			//  furthermore, we can let the afterSync decide if it wants to accept upstream
 		}
+//		else {
+//			println(" :( decision wasn't sync???")
+//		}
 	}
 
 	protected def fetchServerVersion(): AtomicObjectState[A]
