@@ -5,7 +5,11 @@ import rover.rdo.state.{AtomicObjectState, RecordedStateModification}
 class DiffWithAncestor[A <: Serializable](private val child: AtomicObjectState[A], private val ancestor: AtomicObjectState[A]) {
 
 	def asList: List[RecordedStateModification[A]] = {
-		for(i <- child.log.asList) {
+		/**
+		  *    children: O ---parent---> o ---parent---> o
+		  *    ancestor:                                /|\
+		  */
+		for(i <- child.log.asList.reverse) {
 			if(i.parent.contains(ancestor)) {
 				// TODO: inefficient
 				val indexOfI = child.log.asList.indexOf(i)
