@@ -13,4 +13,23 @@ class DiffWithAncestorTest extends FunSuite {
 		assert(diff.asList.size == 1)
 		assert(diff.asList.head == modified.log.asList.reverse.head)
 	}
+	
+	test("diff works with longer scenarios") {
+		val initial = AtomicObjectState.initial[List[String]](List())
+		val checkpoint1 = initial.applyOp(s => s :+ "1")
+				.applyOp(s => s :+ "2")
+				.applyOp(s => s :+ "3")
+		
+		val probedOp = (s: List[String]) => s :+ "4"
+		
+		val checkpoint2 = checkpoint1.applyOp(probedOp)
+	            .applyOp(s => s :+ "5")
+	            .applyOp(s => s :+ "6")
+		
+		val commonAncestor = new CommonAncestor[List[String]](checkpoint1, checkpoint2)
+		val diff = new DiffWithAncestor[List[String]](checkpoint2, commonAncestor)
+		
+		assert(commonAncestor == checkpoint1)
+		assert(diff.asList.head.parent.get == checkpoint1)
+	}
 }
