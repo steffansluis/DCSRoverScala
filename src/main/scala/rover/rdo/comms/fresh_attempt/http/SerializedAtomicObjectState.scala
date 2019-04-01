@@ -1,6 +1,9 @@
 package rover.rdo.comms.fresh_attempt.http
 
 import java.io._
+import java.nio.charset.Charset
+
+import org.apache.commons.codec.binary.{Base64, Base64OutputStream}
 
 // keep this import! Otherwise java.io.Serializable is used due to import java.io._
 // Even though scala.Serializable is just trait with java.io.Serializable, it will break the app (v2.12.8)
@@ -28,9 +31,14 @@ class SerializedAtomicObjectState[A <: Serializable] (state: AtomicObjectState[A
 	}
 
 	lazy val asString: String = {
+		val encoded = new Base64().encodeToString(asBytes)
+		
+		println(encoded)
 		//return
-		asByteArrayOutputStream.toString
+		encoded
 	}
+	
+	
 }
 
 
@@ -73,5 +81,11 @@ object DeserializedAtomicObjectState {
 
 	def apply[A <: Serializable](bytes: Array[Byte]): DeserializedAtomicObjectState[A] = {
 		return new AtomicObjectStateAsByteArray[A](bytes)
+	}
+	
+	def apply[A <: Serializable](string: String): DeserializedAtomicObjectState[A] = {
+		println(string)
+		val decoded = new Base64().decode(string)
+		return new AtomicObjectStateAsByteArray[A](decoded)
 	}
 }

@@ -1,6 +1,6 @@
 package rover.rdo.comms.fresh_attempt.http
 
-import com.mashape.unirest.http.Unirest
+import kong.unirest.Unirest
 import rover.rdo.ObjectId
 import rover.rdo.comms.fresh_attempt.Client
 import rover.rdo.state.AtomicObjectState
@@ -21,23 +21,26 @@ class ClientForServerOverHttp[A <: Serializable](
 ) extends Client[A]{
 
 	override def created(): AtomicObjectState[A] = {
-		val createResponse = Unirest.get(endpointPaths.createEndpoint).asBinary()
-		val received = DeserializedAtomicObjectState[A](createResponse.getRawBody).asAtomicObjectState
+		val createResponse = Unirest.get(endpointPaths.createEndpoint).asString()
+		val received = DeserializedAtomicObjectState[A](createResponse.getBody).asAtomicObjectState
 
 		return received
 	}
 
 	override def fetch(objectId: ObjectId): AtomicObjectState[A] = {
+		println(s"Fetch: ${objectId.asString}")
 		val fetchResponse = Unirest.get(endpointPaths.getEndpoint + "/{objectId}")
     		.routeParam("objectId", objectId.asString)
-			.asBinary()
+			.asString()
 		
-		val deserialized = DeserializedAtomicObjectState[A](fetchResponse.getRawBody)
+		val deserialized = DeserializedAtomicObjectState[A](fetchResponse.getBody)
 
 		return deserialized.asAtomicObjectState
 	}
 
 	override def push(state: AtomicObjectState[A]): Unit = {
+		println(s"Push")
+		
 		val serialized = new SerializedAtomicObjectState[A](state)
 		Unirest.post(endpointPaths.acceptEndpoint).body(serialized.asBytes)
 

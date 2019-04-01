@@ -29,26 +29,34 @@ class ServerHttpInterface[A <: Serializable](
 
 		val serialized = new SerializedAtomicObjectState[A](newlyCreated)
 
-		result.body(serialized.asString)
+//		result.body()
 		result.`type`("application/octet-stream")
 
-		result
+//		result
+		serialized.asString
 	})
 
 	// Create an endpoint for the "get" server method
 	get(endpointPaths.getEndpoint + "/:objectId", (request, result) => {
 		val objectIdStringInRequestParam = request.params(":objectId")
+		println(s"Get for objectId: $objectIdStringInRequestParam")
 		val objectId = ObjectId.from(objectIdStringInRequestParam)
 
 		val latestOnServer = serverImpl.get(objectId)
-			.getOrElse(throw new Exception("Server did not have requested object/state..."))
+			.getOrElse({
+				println("   was not found on server... throwing exception")
+				throw new Exception("Server did not have requested object/state...")
+			})
 
+		println("   was found on server")
+		
 		val serializedState = new SerializedAtomicObjectState[A](latestOnServer)
 
-		result.body(serializedState.asString)
+//		result.()
 		result.`type`("application/octet-stream")
 
-		result
+//		result
+		serializedState.asString
 	})
 
 	post(endpointPaths.acceptEndpoint, (request, result) => {
