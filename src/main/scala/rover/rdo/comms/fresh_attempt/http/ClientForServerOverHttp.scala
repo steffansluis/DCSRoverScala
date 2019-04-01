@@ -42,7 +42,7 @@ class ClientForServerOverHttp[A <: Serializable](
 		println(s"Push")
 		
 		val serialized = new SerializedAtomicObjectState[A](state)
-		Unirest.post(endpointPaths.acceptEndpoint).body(serialized.asBytes)
+		Unirest.post(endpointPaths.acceptEndpoint).body(serialized.asString)
 
 		// TODO: ?
 	}

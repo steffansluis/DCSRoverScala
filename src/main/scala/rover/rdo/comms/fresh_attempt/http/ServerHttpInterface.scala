@@ -39,8 +39,9 @@ class ServerHttpInterface[A <: Serializable](
 	// Create an endpoint for the "get" server method
 	get(endpointPaths.getEndpoint + "/:objectId", (request, result) => {
 		val objectIdStringInRequestParam = request.params(":objectId")
-		println(s"Get for objectId: $objectIdStringInRequestParam")
 		val objectId = ObjectId.from(objectIdStringInRequestParam)
+		
+		println(s"Get for objectId: $objectIdStringInRequestParam")
 
 		val latestOnServer = serverImpl.get(objectId)
 			.getOrElse({
