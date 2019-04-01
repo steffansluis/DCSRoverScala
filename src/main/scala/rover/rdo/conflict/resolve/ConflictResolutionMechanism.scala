@@ -9,7 +9,7 @@ import rover.rdo.state.{AtomicObjectState, BasicAtomicObjectState, MergeOperatio
  *
   * @tparam A The state implementation type
   */
-trait ConflictResolutionMechanism[A <: Serializable] {
+trait ConflictResolutionMechanism[A <: Serializable] extends Serializable {
 	/**
 	  * <p>
 	  *     Resolves the conflict contained in the ConflictedState argument
