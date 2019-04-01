@@ -17,15 +17,14 @@ import scala.concurrent.Future
 // FIXME: ensure messages can be read, but not modified or reassigned...(crypto)
 // FIXME: after state & rd object impl change
 class Chat(
-    private val client: Client[List[ChatMessage]],
-	private val _checkpointedState: AtomicObjectState[List[ChatMessage]]
-)
-extends RdObject[List[ChatMessage]](
-	_checkpointedState
-)
-with SelfSyncingRdo[List[ChatMessage]]
+	    private val client: Client[List[ChatMessage]],
+		private val _checkpointedState: AtomicObjectState[List[ChatMessage]]
+	)
+	extends RdObject[List[ChatMessage]](
+		_checkpointedState
+	)
+	with SelfSyncingRdo[List[ChatMessage]]
 {
-	type ChatState = List[ChatMessage]
 
 	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
 	val _onStateModified: Chat#Updater = null
@@ -125,8 +124,6 @@ object test {
 		println(resolved.asAtomicObjectState.log.asList.mkString("\n     "))
 
 	}
-
-
 }
 
 
