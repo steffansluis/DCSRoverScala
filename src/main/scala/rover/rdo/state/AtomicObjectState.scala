@@ -10,9 +10,17 @@ trait AtomicObjectState[A <: Serializable] extends Serializable {
 	def immutableState: A
 
 	def log: StateLog[A]
+	
+	def previous: Option[AtomicObjectState[A]]
+	
 	def applyOp(operation: Op): AtomicObjectState[A]
 
-	override def equals(obj: Any): Boolean
+	override def equals(obj: Any): Boolean = {
+		obj match {
+			case other: AtomicObjectState[A] => this.immutableState == other.immutableState
+			case _ => false
+		}
+	}
 }
 
 // TODO: make ctor private?
@@ -27,6 +35,9 @@ class InitialAtomicObjectState[A <: Serializable] (identityState: A) extends Ato
 	override def immutableState: A = identityState
 	
 	override val log: StateLog[A] = StateLog.forInitialAtomicObjectState(this)
+	
+	
+	override val previous: Option[AtomicObjectState[A]] = Option.empty
 	
 	override def applyOp(operation: Op): AtomicObjectState[A] = {
 //		val resultingState = operation.apply(immutableState)
@@ -58,12 +69,9 @@ class BasicAtomicObjectState[A <: Serializable] (val objectId: ObjectId, val imm
 
 		return new BasicAtomicObjectState[A](this.objectId, result, updatedLog)
 	}
-
-	override def equals(that: Any): Boolean = {
-		that match{
-			case that: AtomicObjectState[A] => this.immutableState == that.immutableState
-			case _ => false
-		}
+	
+	lazy override val previous: Option[AtomicObjectState[A]] = {
+		log.asList.reverse.head.parent
 	}
 
 	override def toString: String = {
