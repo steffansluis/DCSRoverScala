@@ -18,35 +18,51 @@ class CommonAncestor[A <: Serializable](private val one: AtomicObjectState[A], p
 
 	override def objectId: ObjectId = one.objectId // one or other, doesn't matter
 
-	// determine it once and defer all RdObject methods to it
-	def state: AtomicObjectState[A] = {
-		// todo: investigate if this function is exectured every time, or just once
-
-		for (i <- one.log.asList.reverse) {
-			for (j <- other.log.asList.reverse) {
-
-				// FIXME: There can be more than one parent, if ancestor is in an "incoming change" of a merge, it will not find it
-
-// TODO hacky fix:
-//				if (i == j) {
-//					i match {
-//						case parent:
-//					}
-//					return i.
-//				}
-
-				//noinspection ExistsEquals
-				if (i.parent.exists(parentI => j.parent.exists(parentJ => parentI == parentJ))) {
-					val ancestor = i.parent.get
-					return ancestor
+	// the state that is the ancestor
+	lazy val state: AtomicObjectState[A] = determineTheCommonAncestor()
+	
+	private def determineTheCommonAncestor(): AtomicObjectState[A] = {
+		
+		var i = Option(one)
+		var j = Option(other)
+		
+		// FIXME: There could be more than one parent, if the true ancestor is in an "incoming change" of a merge, the algo will not find it
+		
+		while(j.isDefined) {
+			
+			// for each j (latest to earliest) compare with all i's
+			while(i.isDefined) {
+				val a = j.get
+				val b = i.get
+				
+				// same, common ancestor is either one of them equally
+				if (a == b) {
+					return a
 				}
+				
+				if (a.previous.contains(b)) {
+					return b
+				}
+				
+				if (b.previous.contains(a)) {
+					return a
+				}
+				
+				i = i.get.previous
 			}
+			
+			i = Option(one) // reset i back to start
+			j = j.get.previous // move one back
 		}
-
-
-
-		// TODO: typed exception, better error logs
+		
+		// TODO: typed exception
 		throw new RuntimeException("Failed to determine a common ancestor")
+	}
+	
+	/* delegate all AtomicObjectState's method to the actual ancestor (stored in state) */
+	
+	override val previous: Option[AtomicObjectState[A]] = {
+		state.previous
 	}
 
 	override def toString: String = {
