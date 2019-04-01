@@ -14,6 +14,7 @@ class VolatileServer[A <: Serializable] (
 	val serverConfiguration: ServerConfiguration[A],
 	var storage: Map[ObjectId, AtomicObjectState[A]]
 ) extends Server[A] {
+	println(s"Volatile Server created with storage: ${storage}")
 
 	override def create(): AtomicObjectState[A] = {
 		val initial = AtomicObjectState.initial(serverConfiguration.initialStateValue)
@@ -23,6 +24,8 @@ class VolatileServer[A <: Serializable] (
 	}
 
 	override def get(objectById: ObjectId): Option[AtomicObjectState[A]] = {
+		println(s"Volatile Server, handling get request for ${objectById}")
+		println(s"   storage: ${storage}")
 		return storage.get(objectById)
 	}
 

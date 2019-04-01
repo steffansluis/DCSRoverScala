@@ -26,8 +26,8 @@ case class ObjectId(asString: String) {
 
 object ObjectId {
 	// FIXME: temporary during dev
-	val chatAppChat: ObjectId = {
-		from("chat")
+	var chatAppChat: ObjectId = {
+		from("d2a81346-219c-467d-87dc-21c679db7199")
 	}
 
 	def from(string: String): ObjectId = {
