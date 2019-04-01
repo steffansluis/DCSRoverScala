@@ -26,10 +26,11 @@ trait AtomicObjectState[A <: Serializable] extends Serializable {
 // TODO: make ctor private?
 @SerialVersionUID(54376L)
 class InitialAtomicObjectState[A <: Serializable] (identityState: A) extends AtomicObjectState[A] {
+	
 	override val objectId: ObjectId = {
-		val objectId = ObjectId.generateNew()
-		println(s"New initial atomic object state, with id: ${objectId}")
-		objectId
+		val newId = ObjectId.generateNew()
+		println(s"New initial atomic object state, with id: ${newId}")
+		newId
 	}
 
 	override def immutableState: A = identityState
