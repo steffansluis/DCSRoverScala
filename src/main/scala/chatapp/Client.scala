@@ -37,8 +37,8 @@ class ChatAppClient(serverAddress: String)  {
 		async {
 			this.user = user
 			
-			val client = new ClientForServerOverHttp(ServerHttpEndpointPaths.atServer(serverAddress, "chatapp"))
-			val chat = client.fetch(ObjectId.chatAppChat)
+			val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(serverAddress, "chatapp"))
+			chat = Chat.fromServer(client, ObjectId.chatAppChat)
 			
 //			println(s"Initial state: ${chat.state}")
 		}
@@ -113,7 +113,7 @@ object ChatAppClient {
 
 object Bot {
 		def main(args: Array[String]): Unit = {
-			val serverAddress = "localhost"
+			val serverAddress = "http://localhost:8080"
 			val client = new ChatAppClient(serverAddress)
 			val f = async {
 				await(client.login(ChatUser.Giannis))

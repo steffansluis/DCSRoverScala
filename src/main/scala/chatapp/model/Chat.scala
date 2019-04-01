@@ -1,10 +1,11 @@
 package chatapp.model
 
-import chatapp.{ChatConflictResolutionMechanism, ChatServer, ChatUser}
+import chatapp.{ChatAppClient, ChatConflictResolutionMechanism, ChatServer, ChatUser}
 import rover.rdo.{ObjectId, RdObject}
 import rover.rdo.comms.Client.OAuth2Credentials
 import rover.rdo.comms.{SelfSyncingRdo, SyncDecision}
 import rover.rdo.comms.SyncDecision.SyncDecision
+import rover.rdo.comms.fresh_attempt.Client
 import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
 
@@ -16,8 +17,8 @@ import scala.concurrent.Future
 // FIXME: ensure messages can be read, but not modified or reassigned...(crypto)
 // FIXME: after state & rd object impl change
 class Chat(
-	private val _checkpointedState: AtomicObjectState[List[ChatMessage]],
-	private val credentials: OAuth2Credentials
+    private val client: Client[List[ChatMessage]],
+	private val _checkpointedState: AtomicObjectState[List[ChatMessage]]
 )
 extends RdObject[List[ChatMessage]](
 	_checkpointedState
@@ -56,33 +57,35 @@ with SelfSyncingRdo[List[ChatMessage]]
 	}
 
 	override protected def fetchServerVersion(): AtomicObjectState[List[ChatMessage]] = {
-		// FIXME
-		return this.state
+		// TODO: moe to SelfSyncing?
+		val fetched = client.fetch(this.state.objectId)
+		return fetched
 	}
 
 	override protected def pushLocalVersion(localVersion: AtomicObjectState[List[ChatMessage]]): Unit = {
-		// FIXME
+		client.push(this.state)
 	}
 }
 
 object Chat {
-	def fromServer(server: ChatServer): Unit = {
-		server.get(ObjectId.chatAppChat)
+	def fromServer(client: Client[List[ChatMessage]], objectId: ObjectId): Chat = {
+		val fetched = client.fetch(objectId)
+		return new Chat(client, fetched)
 	}
 	
 //	def fromRDO(rdo: RdObject[List[ChatMessage]]): Chat = {
 //		new Chat(rdo.state, null)
 //	}
 
-	def copyOf(chat: Chat) = {
-		new Chat(chat.state, chat.credentials)
+	def copyOf(chat: Chat): Chat = {
+		new Chat(chat.client, chat.state)
 	}
 }
 
 object test {
 	def main(args: Array[String]): Unit ={
 		val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("Welcome", new ChatUser("system"))))
-		val chat = new Chat(initialState, null)
+		val chat = new Chat(null, initialState)
 		val THREAD_SLEEP = 1000
 
 		//stage 1: Copying
