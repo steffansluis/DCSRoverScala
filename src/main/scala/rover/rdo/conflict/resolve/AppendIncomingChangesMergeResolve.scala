@@ -16,6 +16,7 @@ import rover.rdo.conflict.ConflictedState
 class AppendIncomingChangesMergeResolve[A <: Serializable] extends ConflictResolutionMechanism[A] {
 		
 	override def resolveConflict(conflictedState: ConflictedState[A]): ResolvedMerge[A] = {
+//		println(s"Common ancestor: ${conflictedState.commonAncestor}")
 		val changesIncoming = conflictedState.changesIncomingRelativeToCommonAncestor
 		var versionToApplyOn = conflictedState.serverVersion
 		

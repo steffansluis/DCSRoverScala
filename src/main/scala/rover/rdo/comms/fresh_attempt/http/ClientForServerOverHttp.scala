@@ -1,7 +1,6 @@
 package rover.rdo.comms.fresh_attempt.http
 
 import kong.unirest.Unirest
-import org.apache.commons.codec.binary.Base64
 import rover.rdo.ObjectId
 import rover.rdo.comms.fresh_attempt.Client
 import rover.rdo.state.AtomicObjectState
@@ -41,7 +40,7 @@ class ClientForServerOverHttp[A <: Serializable](
 	}
 
 	override def push(state: AtomicObjectState[A]): Unit = {
-		println(s"          Pushing: ${state.immutableState}")
+//		println(s"          Pushing: ${state.immutableState}")
 		
 		val serialized = new SerializedAtomicObjectState[A](state)
 		val body = Unirest.post(endpointPaths.acceptEndpoint)

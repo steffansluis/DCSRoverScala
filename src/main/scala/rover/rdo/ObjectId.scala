@@ -1,7 +1,5 @@
 package rover.rdo
 
-import java.util.UUID
-
 case class ObjectId(asString: String) {
 	override def toString: String = {
 		return asString
