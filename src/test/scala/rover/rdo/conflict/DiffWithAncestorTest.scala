@@ -31,5 +31,6 @@ class DiffWithAncestorTest extends FunSuite {
 		
 		assert(commonAncestor == checkpoint1)
 		assert(diff.asList.head.parent.get == checkpoint1)
+		assert(diff.asList.size == 3)
 	}
 }

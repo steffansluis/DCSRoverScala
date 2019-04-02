@@ -23,7 +23,13 @@ class ServerHttpInterface[A <: Serializable](
 	val endpointPaths = ServerHttpEndpointPaths.forServer(applicationName)
 
 	Spark.port(port)
+	
+	// debug
 	Spark.before("/*", (q, a) => println(q.pathInfo()))
+	
+	exception(classOf[Exception], (exception: Exception, request: Request, response: Response) => {
+		println(s"Exception: ${exception}")
+	})
 	
 	get(endpointPaths.createEndpoint, (request, result) => {
 		val newlyCreated = serverImpl.create()

@@ -12,7 +12,7 @@ import rover.rdo.state.AtomicObjectState
 //
 //}
 
-class ChatServer(private val serverImpl: EphemeralServer[List[ChatMessage]]) extends Server[List[ChatMessage]] {
+class ChatServer(val serverImpl: EphemeralServer[List[ChatMessage]]) extends Server[List[ChatMessage]] {
 	
 	private val restInterface = new ServerHttpInterface[List[ChatMessage]]("chatapp", 8080, serverImpl)
 	
@@ -47,15 +47,17 @@ object ChatServer {
 		// return
 		Map(initialAtomicObjectState.objectId -> initialAtomicObjectState)
 	}
-
-	def main(args: Array[String]): Unit = {
-		
+	
+	def start(): ChatServer = {
 		val serverConfig = new ServerConfiguration[List[ChatMessage]](INITIAL, new ChatConflictResolutionMechanism)
 		val serverImpl = new EphemeralServer[List[ChatMessage]](serverConfig, startingServerStateStore)
 		val server = new ChatServer(serverImpl)
 		
+		return server
+	}
+
+	def main(args: Array[String]): Unit = {
+		start()
 		println("Chat application server has started")
-		
-		// will it keep on running?
 	}
 }
