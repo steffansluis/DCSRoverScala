@@ -17,6 +17,13 @@ extends Serializable {
 	override def toString: String = {
 		s"${author.username}: $body"
 	}
+
+	override def equals(obj: Any): Boolean = {
+		obj match {
+			case other: ChatMessage => this.body == other.body && this.author == other.author && this.timestamp == other.timestamp
+			case _ => false
+		}
+	}
 }
 
 object ChatMessage {

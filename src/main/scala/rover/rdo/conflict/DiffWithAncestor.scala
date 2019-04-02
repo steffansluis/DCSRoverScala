@@ -11,6 +11,10 @@ class DiffWithAncestor[A <: Serializable](private val child: AtomicObjectState[A
 		  *    children: O ---parent---> o ---parent---> o
 		  *    ancestor:                                /|\
 		  */
+
+		// TODO: Figure out how to include this in the loop and not make it an edge case
+		if (child == ancestor) return List()
+
 		for(i <- child.log.asList.reverse) {
 			if(i.parent.contains(ancestor)) {
 				// TODO: inefficient
@@ -21,7 +25,9 @@ class DiffWithAncestor[A <: Serializable](private val child: AtomicObjectState[A
 			}
 		}
 
-		throw new RuntimeException("Failed to determine difference with this ancestor")
+		// Return an empty diff if the states don't share a common ancestor
+		List()
+//		throw new RuntimeException("Failed to determine difference with this ancestor")
 	}
 
 	override def toString: String = {

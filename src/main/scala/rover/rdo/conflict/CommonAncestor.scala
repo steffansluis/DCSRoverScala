@@ -36,7 +36,9 @@ class CommonAncestor[A <: Serializable](private val one: AtomicObjectState[A], p
 				val b = i.get
 				
 				// same, common ancestor is either one of them equally
-				if (a == b) {
+//				println(s"a = ${a}, b = ${b} :a == b? ${a == b}")
+				// TODO: FIXME: HACKS!
+				if (a.toString == b.toString) {
 					return a
 				}
 				
