@@ -7,7 +7,7 @@ import rover.rdo.state.AtomicObjectState
 import scala.util.Random
 
 
-class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {
+class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) with Serializable {
 
 	def cast(vote: PollChoice): Unit = {
 		modifyState(votes => votes.add(vote))
@@ -41,8 +41,8 @@ object Poll {
 		return new Poll(poll.question, poll.choices, poll.state)
 	}
 
-	def toNonRoverInit(poll: Poll): NonRoverPoll = {
-		return NonRoverPoll(poll.question, poll.choices)
+	def toNonRover(poll: Poll): NonRoverPoll = {
+		return new NonRoverPoll(poll.question, poll.choices, poll.state.immutableState)
 	}
 
 	def generateRandom(question: String, numChoices: Int): Poll = {
@@ -52,11 +52,29 @@ object Poll {
 		})
 		return new Poll(question, choices, AtomicObjectState.initial(Votes.generateRandom(choices)))
 	}
+
+	def generateRandomPolls(question: String, numChoices: Int, numRepetitions: Int): List[Poll] = {
+		var randomPolls = List[Poll]()
+
+		Range.inclusive(1, numRepetitions).foreach(_ => {
+			randomPolls = randomPolls :+ generateRandom(question, numChoices)
+		})
+		return randomPolls
+	}
+
+	def toNonRoverRandomPolls(randomPolls: List[Poll]): List[NonRoverPoll] = {
+		var nonRoverRandomPolls = List[NonRoverPoll]()
+
+		for (poll <- randomPolls) {
+			nonRoverRandomPolls = nonRoverRandomPolls :+ Poll.toNonRover(poll)
+		}
+		return nonRoverRandomPolls
+	}
 }
 
 class NonRoverPoll(val question: String,
 				   val choices: List[PollChoice],
-				   val votes: Votes) {
+				   val votes: Votes) extends Serializable {
 
 	def cast(vote: PollChoice): Unit =  {
 		votes.add(vote)
@@ -97,6 +115,7 @@ class PollResult(private  val votes: Votes) {
 
 case class PollChoice(choice: String)
 
+
 @SerialVersionUID(123L)
 class Votes(val map: Map[PollChoice, Int]) extends Serializable {
 	/**
@@ -130,7 +149,7 @@ object Votes {
 	}
 
 	def generateRandom(choices: List[PollChoice]): Votes = {
-		return new Votes(choices.map(choice => (choice, Random.nextInt())).toMap)
+		return new Votes(choices.map(choice => (choice, Random.nextInt(100))).toMap)
 	}
 }
 

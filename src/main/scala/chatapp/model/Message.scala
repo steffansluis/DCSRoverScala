@@ -4,7 +4,6 @@ import chatapp.ChatUser
 import io.circe.syntax._
 import io.circe.{Encoder, Json, _}
 
-
 @SerialVersionUID(235465L)
 class ChatMessage(
 	val body: String,

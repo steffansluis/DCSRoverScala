@@ -40,8 +40,12 @@ object testPollConsistency {
     println("Diff poll2 and common ancestor: " + diffPoll2vsCommon.toString)
 
     val pollMergeConflictResolutionMechanism = new PollAppMergeConflictResolutionMechanism()
+    val benchInit = System.nanoTime()
     val resolved = pollMergeConflictResolutionMechanism.resolveConflict(ConflictedState.from(poll, poll2))
+    val benchDuration = System.nanoTime() - benchInit
+
     println(s"\n\nResolved: $resolved")
+    print(s"Time elapsed for resolving: $benchDuration")
 
     println(s"\n    log of resolved: ${resolved.asAtomicObjectState.log.asList.mkString("\n     ")}")
   }
