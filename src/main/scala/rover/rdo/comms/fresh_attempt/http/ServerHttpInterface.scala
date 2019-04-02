@@ -2,7 +2,7 @@ package rover.rdo.comms.fresh_attempt.http
 
 import rover.rdo.ObjectId
 import rover.rdo.comms.fresh_attempt.Server
-import spark.Spark
+import spark.{Request, Response, Spark}
 import spark.Spark._
 
 /**
