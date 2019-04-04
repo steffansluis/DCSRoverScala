@@ -1,8 +1,6 @@
 package microbench
 
-import rover.rdo.CommonAncestor
-import rover.rdo.client.DiffWithAncestor
-import rover.rdo.conflict.ConflictedState
+import rover.rdo.conflict.{CommonAncestor, ConflictedState, DiffWithAncestor}
 import votingapp.{Poll, PollAppMergeConflictResolutionMechanism, PollChoice, Votes}
 
 object testPollConsistency {

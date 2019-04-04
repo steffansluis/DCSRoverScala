@@ -1,14 +1,14 @@
 package microbench
 
-import chatapp.{Chat, ChatConflictResolutionMechanism, ChatMessage, ChatUser}
-import rover.rdo.CommonAncestor
-import rover.rdo.conflict.ConflictedState
+import chatapp.model.{Chat, ChatMessage}
+import chatapp.{ChatConflictResolutionMechanism, ChatUser}
+import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.InitialAtomicObjectState
 
 object testChatConsistency {
   def main(args: Array[String]): Unit ={
     val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("initiating", new ChatUser("system"))))
-    val chat = new Chat(initialState)
+    val chat = new Chat(null ,initialState)
     val THREAD_SLEEP = 1000
 
     //stage 1: Copying

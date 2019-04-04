@@ -6,12 +6,14 @@ import rover.rdo.comms.Client.OAuth2Credentials
 import rover.rdo.comms.{SelfSyncingRdo, SyncDecision}
 import rover.rdo.comms.SyncDecision.SyncDecision
 import rover.rdo.comms.fresh_attempt.Client
+import rover.rdo.comms.fresh_attempt.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
 import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
 
 import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Random
 
 
 // FIXME: ensure messages can be read, but not modified or reassigned...(crypto)
@@ -40,8 +42,8 @@ class Chat(
 	/* SelfSyncing impl */
 
 	def sendSynchronous(message: ChatMessage): Unit = {
-		val op: AtomicObjectState[List[ChatMessage]]#Op = s => s :+ message
-		modifyState(op)
+		val appendTheMessage = (s: List[ChatMessage]) => s :+ message
+		modifyState(appendTheMessage)
 	}
 
 
@@ -51,6 +53,10 @@ class Chat(
 
 	def currentVersion(): Long = {
 		immutableState.size
+	}
+
+	def getCheckpointedState(): AtomicObjectState[List[ChatMessage]] = {
+		return this._checkpointedState
 	}
 
 	override def beforeSync(currentState: List[ChatMessage]): SyncDecision = {
@@ -81,13 +87,68 @@ object Chat {
 		return new Chat(client, fetched)
 	}
 	
-//	def fromRDO(rdo: RdObject[List[ChatMessage]]): Chat = {
-//		new Chat(rdo.state, null)
-//	}
+	def fromCheckpointedState(checkPointedState: AtomicObjectState[List[ChatMessage]]): Chat = {
+		val serverAddress = ChatServer.SERVER_ADRESS
+		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(serverAddress, "chatapp"))
+		new Chat(client, checkPointedState)
+	}
 
 	def copyOf(chat: Chat): Chat = {
 		new Chat(chat.client, chat.state)
 	}
+
+	def initial(): Chat = {
+		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(ChatServer.SERVER_ADRESS, "chatapp"))
+		new Chat(client, AtomicObjectState.initial(List[ChatMessage]()))
+	}
+
+	def generateRandomMessages(numMessages: Int, maxMessageLength: Int): List[ChatMessage] = {
+		var messageLength : Int = 0
+		var messageBody: String = null
+		var randomMessages = List[ChatMessage]()
+
+		Range.inclusive(1, numMessages).foreach(_ => {
+			messageLength = Random.nextInt(maxMessageLength)
+			messageBody = Random.alphanumeric.take(messageLength).mkString
+			randomMessages = randomMessages :+ new ChatMessage(messageBody, ChatUser.System)
+		})
+		return randomMessages
+	}
+}
+
+
+class NonRoverChat(private val client: Client[List[ChatMessage]],
+				   private var _checkpointedState: List[ChatMessage] = List[ChatMessage](),
+				   ) extends Serializable {
+
+	def send(message: ChatMessage): Unit = {
+		this._checkpointedState = this._checkpointedState :+ message
+	}
+
+	def getCheckpointedState(): List[ChatMessage] = {
+		return this._checkpointedState
+	}
+
+	override def toString: String = {
+		return this._checkpointedState.last.toString
+	}
+
+	def mkString: String = {
+		return this._checkpointedState.mkString("\n")
+	}
+}
+
+object NonRoverChat {
+	def initial(): NonRoverChat = {
+		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(ChatServer.SERVER_ADRESS, "chatapp"))
+		new NonRoverChat(client, List[ChatMessage]())
+	}
+
+	def fromCheckpointedState(checkPointedState: List[ChatMessage]): NonRoverChat = {
+		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(ChatServer.SERVER_ADRESS, "chatapp"))
+		new NonRoverChat(client, checkPointedState)
+	}
+
 }
 
 

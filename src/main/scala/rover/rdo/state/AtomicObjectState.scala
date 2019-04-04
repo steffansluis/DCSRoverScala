@@ -29,7 +29,7 @@ class InitialAtomicObjectState[A <: Serializable] (identityState: A) extends Ato
 	
 	override val objectId: ObjectId = {
 		val newId = ObjectId.generateNew()
-		println(s"New initial atomic object state, with id: ${newId}")
+//		println(s"New initial atomic object state, with id: ${newId}")
 		newId
 	}
 

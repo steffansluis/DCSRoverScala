@@ -3,8 +3,8 @@ package microbench
 import java.io.{BufferedWriter, ByteArrayOutputStream, FileWriter, ObjectOutputStream}
 
 import au.com.bytecode.opencsv.CSVWriter
-import chatapp.{Chat, ChatMessage, NonRoverChat}
-import rover.rdo.client.RdObject
+import chatapp.model.{Chat, ChatMessage, NonRoverChat}
+import rover.rdo.RdObject
 import rover.rdo.state.AtomicObjectState
 import utilities.Utilities
 
@@ -18,8 +18,8 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
                              var nonRoverBenchDurations: List[Long] = List[Long]()) extends Serializable {
 
 
-    val nonRoverChat: NonRoverChat = NonRoverChat.initial(List[ChatMessage]())
-    val roverChat: Chat = Chat.fromRDO(new RdObject[List[ChatMessage]](AtomicObjectState.initial(List[ChatMessage]())))
+    val nonRoverChat: NonRoverChat = NonRoverChat.initial()
+    val roverChat: Chat = Chat.initial()
 
     def benchmarkRoverChat(randomMessages: List[ChatMessage]): List[Long] = {
         var benchInit: Long = 0.asInstanceOf[Long]
@@ -49,12 +49,12 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
 
         Range.inclusive(1, numRepetitions).foreach(_ => {
             val randomMessages = Chat.generateRandomMessages(numRepetitions, maxMessageLength)
-            val roverObject = Chat.fromRDO(new RdObject[List[ChatMessage]](AtomicObjectState.initial(randomMessages)))
-            val nonRoverObject = NonRoverChat.initial(randomMessages)
+            val roverObject = Chat.fromCheckpointedState(AtomicObjectState.initial(List[ChatMessage]()))
+            val nonRoverObject = NonRoverChat.fromCheckpointedState(randomMessages)
 
-            roverSizes = roverSizes :+ Utilities.sizeOf(roverObject).asInstanceOf[Long]
+            roverSizes = roverSizes :+ Utilities.sizeOf(roverObject.getCheckpointedState()).asInstanceOf[Long]
 //            println(s"rover-size: ${roverSizes.last}")
-            nonRoverSizes = nonRoverSizes :+ Utilities.sizeOf(nonRoverObject).asInstanceOf[Long]
+            nonRoverSizes = nonRoverSizes :+ Utilities.sizeOf(nonRoverObject.getCheckpointedState()).asInstanceOf[Long]
 //            println(s"non-rover-size: ${nonRoverSizes.last}")
         })
 
