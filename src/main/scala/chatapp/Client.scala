@@ -2,10 +2,8 @@ package chatapp
 
 import chatapp.model.{Chat, ChatMessage}
 import chatapp.ui.REPL
-import rover.rdo.comms.Client.OAuth2Credentials
+import rover.rdo.ObjectId
 import rover.rdo.comms.fresh_attempt.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
-import rover.rdo.{ObjectId, RdObject}
-import rover.rdo.comms.{HTTPClient, Session}
 
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,10 +34,10 @@ class ChatAppClient(serverAddress: String)  {
 	def login(user: ChatUser): Future[Unit] = {
 		async {
 			this.user = user
-			
+
 			val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(serverAddress, "chatapp"))
 			chat = Chat.fromServer(client, ObjectId.chatAppChat)
-			
+
 //			println(s"Initial state: ${chat.state}")
 		}
 	}
