@@ -1,13 +1,13 @@
 package votingapp
 
 import rover.rdo.RdObject
-import rover.rdo.conflict.{CommonAncestor, ConflictedState, DiffWithAncestor}
+import rover.rdo.conflict.CommonAncestor
 import rover.rdo.state.AtomicObjectState
 
 import scala.util.Random
 
 
-class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) with Serializable {
+class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {
 
 	def cast(vote: PollChoice): Unit = {
 		modifyState(votes => votes.add(vote))
@@ -20,8 +20,6 @@ class Poll(val question: String, val choices: List[PollChoice], state: AtomicObj
 
 	override def toString: String = immutableState.toString
 
-//	override def currentVersion: Long = 0
-//	override def stableVersion: Long = 0
 }
 
 object Poll {
@@ -74,10 +72,10 @@ object Poll {
 
 class NonRoverPoll(val question: String,
 				   val choices: List[PollChoice],
-				   val votes: Votes) extends Serializable {
+				   var votes: Votes) {
 
 	def cast(vote: PollChoice): Unit =  {
-		votes.add(vote)
+		this.votes.add(vote)
 	}
 
 	def result: PollResult = {
@@ -107,13 +105,13 @@ object NonRoverPoll {
 	}
 }
 
-class PollResult(private  val votes: Votes) {
+class PollResult(private  val votes: Votes) extends Serializable {
 	def winner: PollChoice = {
 		votes.majorityChoice
 	}
 }
 
-case class PollChoice(choice: String)
+case class PollChoice(choice: String) extends Serializable
 
 
 @SerialVersionUID(123L)
@@ -179,3 +177,16 @@ object henk {
 	}
 }
 
+
+object test {
+	def main(args: Array[String]): Unit = {
+		val poll = NonRoverPoll("test", 5)
+		println(s"state: ${poll.votes}")
+
+		poll.votes = poll.votes.add(poll.choices.last)
+		println(s"new state: ${poll.votes}")
+
+		println(s"winner: ${poll.result.winner}")
+
+	}
+}

@@ -5,7 +5,7 @@ import chatapp.{ChatConflictResolutionMechanism, ChatUser}
 import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.InitialAtomicObjectState
 
-object testChatConsistency {
+object ChatConsistency {
   def main(args: Array[String]): Unit ={
     val initialState = new InitialAtomicObjectState[List[ChatMessage]](List(new ChatMessage("initiating", new ChatUser("system"))))
     val chat = new Chat(null ,initialState)
