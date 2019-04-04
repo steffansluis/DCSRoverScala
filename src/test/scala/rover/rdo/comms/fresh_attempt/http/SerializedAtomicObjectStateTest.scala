@@ -18,7 +18,7 @@ class SerializedAtomicObjectStateTest extends FunSuite {
 		assert(areSame)
 
 		val modifiedOrig = state.applyOp(a => a :+ "henk")
-		val noLongerSame = modifiedOrig.equals(resState)
-		assert(noLongerSame)
+		val stilTheSame = modifiedOrig.equals(resState)
+		assert(stilTheSame == false)
 	}
 }
