@@ -40,23 +40,8 @@ class Chat(
 	}
 
 	/* SelfSyncing impl */
-
-	def sendSynchronous(message: ChatMessage): Unit = {
-		val appendTheMessage = (s: List[ChatMessage]) => s :+ message
-		modifyState(appendTheMessage)
-	}
-
-
 	override def onStateModified(oldState: AtomicObjectState[List[ChatMessage]]): Future[Unit] = {
 		_onStateModified(state)
-	}
-
-	def currentVersion(): Long = {
-		immutableState.size
-	}
-
-	def getCheckpointedState(): AtomicObjectState[List[ChatMessage]] = {
-		return this._checkpointedState
 	}
 
 	override def beforeSync(currentState: List[ChatMessage]): SyncDecision = {
@@ -81,6 +66,15 @@ class Chat(
 	}
 }
 
+trait DebuggableRdo[A <: Serializable] {
+	this: RdObject[A] =>
+
+	val atomicObjectState: AtomicObjectState[A] = {
+		this.state
+	}
+}
+
+
 object Chat {
 	def fromServer(client: Client[List[ChatMessage]], objectId: ObjectId): Chat = {
 		val fetched = client.fetch(objectId)
@@ -102,55 +96,11 @@ object Chat {
 		new Chat(client, AtomicObjectState.initial(List[ChatMessage]()))
 	}
 
-	def generateRandomMessages(numMessages: Int, maxMessageLength: Int): List[ChatMessage] = {
-		var messageLength : Int = 0
-		var messageBody: String = null
-		var randomMessages = List[ChatMessage]()
-
-		Range.inclusive(1, numMessages).foreach(_ => {
-			messageLength = Random.nextInt(maxMessageLength)
-			messageBody = Random.alphanumeric.take(messageLength).mkString
-			randomMessages = randomMessages :+ new ChatMessage(messageBody, ChatUser.System)
-		})
-		return randomMessages
+	def initialDubuggable(): Chat with DebuggableRdo[List[ChatMessage]] = {
+		val chat = new Chat(null, AtomicObjectState.initial(List[ChatMessage]())) with DebuggableRdo[List[ChatMessage]]
+		return chat
 	}
 }
-
-
-class NonRoverChat(private val client: Client[List[ChatMessage]],
-				   private var _checkpointedState: List[ChatMessage] = List[ChatMessage](),
-				   ) extends Serializable {
-
-	def send(message: ChatMessage): Unit = {
-		this._checkpointedState = this._checkpointedState :+ message
-	}
-
-	def getCheckpointedState(): List[ChatMessage] = {
-		return this._checkpointedState
-	}
-
-	override def toString: String = {
-		return this._checkpointedState.last.toString
-	}
-
-	def mkString: String = {
-		return this._checkpointedState.mkString("\n")
-	}
-}
-
-object NonRoverChat {
-	def initial(): NonRoverChat = {
-		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(ChatServer.SERVER_ADRESS, "chatapp"))
-		new NonRoverChat(client, List[ChatMessage]())
-	}
-
-	def fromCheckpointedState(checkPointedState: List[ChatMessage]): NonRoverChat = {
-		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(ChatServer.SERVER_ADRESS, "chatapp"))
-		new NonRoverChat(client, checkPointedState)
-	}
-
-}
-
 
 object test {
 	def main(args: Array[String]): Unit ={

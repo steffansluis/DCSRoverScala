@@ -1,7 +1,6 @@
-package microbench
+package votingapp
 
 import rover.rdo.conflict.{CommonAncestor, ConflictedState, DiffWithAncestor}
-import votingapp.{Poll, PollAppMergeConflictResolutionMechanism, PollChoice, Votes}
 
 object testPollConsistency {
   def main(args: Array[String]): Unit = {

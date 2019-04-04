@@ -31,7 +31,7 @@ object Utilities {
         return randomInts
     }
 
-    def sizeOf(obj: AnyRef): Int = {
+    def sizeOf(obj: AnyRef): Long = {
         val byteOutputStream = new ByteArrayOutputStream()
         val objectOutputStream = new ObjectOutputStream(byteOutputStream)
 

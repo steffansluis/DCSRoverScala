@@ -1,7 +1,6 @@
-package microbench
+package chatapp
 
 import chatapp.model.{Chat, ChatMessage}
-import chatapp.{ChatConflictResolutionMechanism, ChatUser}
 import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.InitialAtomicObjectState
 
