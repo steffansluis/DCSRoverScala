@@ -4,7 +4,7 @@ import scala.math.{pow, sqrt}
 
 class Results(private val values: List[Long] = List[Long]()) {
 
-	def addResult(result: Long): Results = {
+	def withAddedResult(result: Long): Results = {
 		return new Results(values :+ result)
 	}
 	
@@ -24,6 +24,6 @@ class Results(private val values: List[Long] = List[Long]()) {
 	}
 	
 	override def toString: String = {
-		s"mean ${mean}, std dev: ${stdDev}\n values: ${values.toString()}"
+		return s"mean ${mean}, std dev: ${stdDev}\n values: ${values.toString()}"
 	}
 }
