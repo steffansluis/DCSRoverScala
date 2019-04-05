@@ -9,14 +9,32 @@ import utilities.{Results, Utilities}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.Await
+import scala.concurrent.{Await, CanAwait, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
-import scala.util.Random
+import scala.util.{Random, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
 
+trait BenchmarkableChat {
+    def send(message: ChatMessage): Future[Unit]
+}
+
+class PrimitiveChat extends BenchmarkableChat {
+    
+    private var chat = List[ChatMessage]()
+    
+    override def send(message: ChatMessage): Future[Unit] = {
+        return Future({chat = chat :+ message})
+    }
+}
+
+class RdObjectChat(val chat: Chat) extends BenchmarkableChat {
+    override def send(message: ChatMessage): Future[Unit] = {
+        return chat.send(message)
+    }
+}
 
 class ChatOverheadMicroBench(val numRepetitions: Int,
-                             val maxMessageLength: Int,
-                             var nonRoverBenchDurations: List[Long] = List[Long]()) extends Serializable {
+                             val maxMessageLength: Int) {
 
     def generateRandomMessages(numMessages: Int, maxMessageLength: Int): List[ChatMessage] = {
         var messageLength : Int = 0
@@ -31,45 +49,24 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
 
         return randomMessages
     }
-
-    /**
-      * Determine (time) overhead of RdObject + AtomicObjectState
-      * state modificaton mechanism
-      */
-    def benchmarkRdObjectChat(randomMessages: List[ChatMessage]): List[Long] = {
-
-        val roverChat = Chat.initial()
-
-        var timeTakenPerMessage = List[Long]()
-
-        for (message <- randomMessages) {
+    
+    def benchmarkChatPerformance(impl: BenchmarkableChat, testSet: List[ChatMessage]): Results = {
+        var results = new Results()
+    
+        for (msg <- testSet) {
             val tick = System.nanoTime()
-
-            Await.ready(roverChat.send(message), Duration.Inf)
-
+        
+            Await.ready(impl.send(msg), Duration.Inf)
+        
             val tock = System.nanoTime()
-            timeTakenPerMessage = timeTakenPerMessage :+ (tock - tick)
+            
+            val timeTakenForMessage = tock - tick
+            results = results.addResult(timeTakenForMessage)
         }
-
-        return timeTakenPerMessage
+    
+        return results
     }
-
-    def benchmarkPrimitiveChat(randomMessages: List[ChatMessage]): List[Long] = {
-        var benchInit: Long = 0.asInstanceOf[Long]
-
-        var nonRoverChat = List[ChatMessage]()
-
-        for (message <- randomMessages) {
-            val tick = System.nanoTime()
-
-            nonRoverChat = nonRoverChat :+ message
-
-            val tock = System.nanoTime()
-            nonRoverBenchDurations = nonRoverBenchDurations :+ (tock - tick)
-        }
-        return nonRoverBenchDurations
-    }
-
+    
     def getSizeOverhead = {
 
         /* test data */
@@ -112,42 +109,56 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
 
     def run: Unit = {
         val randomMessages = generateRandomMessages(numRepetitions, maxMessageLength)
-        val roverDurations = benchmarkRdObjectChat(randomMessages)
-        val nonRoverDurations = benchmarkPrimitiveChat(randomMessages)
+        
+        // warmup
+        benchmarkChatPerformance(new PrimitiveChat, randomMessages)
+        
+        // real
+        val primitiveChatDurationPerMsg = benchmarkChatPerformance(new PrimitiveChat, randomMessages)
+    
+        // warmup
+        benchmarkChatPerformance(new RdObjectChat(Chat.initial()), randomMessages)
+        
+        // real
+        val rdoChatDurationPerMsg = benchmarkChatPerformance(new RdObjectChat(Chat.initial()), randomMessages)
 
 
         println("Duration per adding msg")
-        println(s"   RdObject: ${roverDurations}")
-        println(s"   Primitive: ${nonRoverDurations}")
+        println(s"   RdObject: ${rdoChatDurationPerMsg}")
+        println(s"   Primitive: ${primitiveChatDurationPerMsg}")
 
-        val csv = toCSV(randomMessages, nonRoverDurations, roverDurations)
+        val csv = toCSV(randomMessages, primitiveChatDurationPerMsg, rdoChatDurationPerMsg)
 
-        val meanRoverDurations = Utilities.getMean(roverDurations.slice(1, numRepetitions))
-        val meanNonRoverDurations = Utilities.getMean(nonRoverDurations.slice(1, numRepetitions))
 
-        println(s"RoverChat: mean time in nano: $meanRoverDurations, std: ${Utilities.getStd(roverDurations.slice(1, numRepetitions))}")
-        println(s"    Ops/s: ${Utilities.oneSecInNano/meanRoverDurations}")
+        println(s"RdoChat: mean time in nano: ${rdoChatDurationPerMsg.mean}, std: ${rdoChatDurationPerMsg.stdDev}")
+        println(s"    Ops/s: ${Utilities.oneSecInNano/rdoChatDurationPerMsg.mean}\n\n")
 
-        println(s"NonRoverChat: mean time in nano $meanNonRoverDurations, std: ${Utilities.getStd(nonRoverDurations.slice(1, numRepetitions))}")
-        println(s"    Ops/s: ${Utilities.oneSecInNano/meanNonRoverDurations}")
+        println(s"PrimiveChat: mean time in nano ${primitiveChatDurationPerMsg.mean}, std: ${primitiveChatDurationPerMsg.stdDev}")
+        println(s"    Ops/s: ${Utilities.oneSecInNano/primitiveChatDurationPerMsg.mean}\n\n")
 
         println("\n")
-        println(f"Overhead: ${Utilities.getOverhead(meanNonRoverDurations.asInstanceOf[Double], meanRoverDurations.asInstanceOf[Double])}%1.4f")
+        println(f"Overhead: ${Utilities.getOverhead(primitiveChatDurationPerMsg.mean, rdoChatDurationPerMsg.mean)}%1.4f")
 
     }
 
-    def toCSV(messages: List[ChatMessage],
-             baselineDurations: List[Long],
-             compareDurations: List[Long]): Unit = {
-
-        val outputFile = new BufferedWriter(new FileWriter(s"./results_chat_${java.time.Instant.now.getEpochSecond}.csv"))
+    def toCSV(messages: List[ChatMessage], baselineDurations: Results, compareDurations: Results): Unit = {
+    
+        val nowInEpochSeconds = java.time.Instant.now.getEpochSecond
+        
+        val outputFile = new BufferedWriter(new FileWriter(s"./results_chat_${nowInEpochSeconds}.csv"))
         val csvWriter = new CSVWriter(outputFile)
+        
         val csvHeader = Array("id", "messages", "nonRoverDurations", "roverDurations")
-        var listOfRecords = new ListBuffer[Array[String]]()
-        listOfRecords += csvHeader
-        Range.inclusive(1, messages.length).foreach(i => {
-               listOfRecords += Array(i.toString, messages(i-1).toString, baselineDurations(i-1).toString, compareDurations(i-1).toString)
-        })
+        var listOfRecords = new ListBuffer[Array[String]]() :+ csvHeader
+        
+        for (i <- Range.inclusive(1, messages.length)) {
+            listOfRecords += Array(
+                i.toString,
+                messages(i-1).toString,
+                baselineDurations(i-1).toString,
+                compareDurations(i-1).toString)
+        }
+        
         csvWriter.writeAll(listOfRecords.toList)
         outputFile.close()
     }

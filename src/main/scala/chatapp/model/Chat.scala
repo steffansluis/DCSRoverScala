@@ -31,7 +31,7 @@ class Chat(
 	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
 	val _onStateModified: Chat#Updater = null
 
-	def send(message: ChatMessage): Future[Unit]= {
+	def send(message: ChatMessage): Future[Unit] = {
 		val appendTheMessage = (s: List[ChatMessage]) => s :+ message
 
 		async {
