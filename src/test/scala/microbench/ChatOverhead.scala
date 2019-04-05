@@ -140,7 +140,7 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
              baselineDurations: List[Long],
              compareDurations: List[Long]): Unit = {
 
-        val outputFile = new BufferedWriter(new FileWriter("./result.csv"))
+        val outputFile = new BufferedWriter(new FileWriter(s"./results_chat_${java.time.Instant.now.getEpochSecond}.csv"))
         val csvWriter = new CSVWriter(outputFile)
         val csvHeader = Array("id", "messages", "nonRoverDurations", "roverDurations")
         var listOfRecords = new ListBuffer[Array[String]]()
