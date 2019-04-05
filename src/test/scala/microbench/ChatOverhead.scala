@@ -5,7 +5,6 @@ import java.io.{BufferedWriter, FileWriter}
 import au.com.bytecode.opencsv.CSVWriter
 import chatapp.{ChatAppClient, ChatServer, ChatUser}
 import chatapp.model.{Chat, ChatMessage}
-import rover.rdo.ObjectId
 import utilities.{Results, Utilities}
 
 import scala.collection.JavaConversions._
@@ -64,6 +63,44 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
         }
         
         return results
+    }
+    
+    def rountripTimesConcurrentUsersBenchmark(testSet: List[ChatMessage]): Results = {
+        var resultsSteffan = new Results()
+        var resultsGiannis = new Results()
+        
+        // start server
+        val server = ChatServer.start()
+        
+        // start client
+        val clientSteffan = new ChatAppClient("http://localhost:8080")
+        Await.ready(clientSteffan.login(ChatUser.Steffan), Duration.Inf)
+    
+        val clientGiannis = new ChatAppClient("http://localhost:8080")
+        Await.ready(clientGiannis.login(ChatUser.Giannis), Duration.Inf)
+        
+        
+        var iteration = 0
+        for (msg <- testSet) {
+            iteration += 1
+            println(s"Roundtrip iteration ${iteration}")
+    
+            // this client sends something
+            val giannisSendAction = clientGiannis.send(msg.body + "1")
+            
+            val tick = System.nanoTime()
+
+                Await.ready(clientSteffan.send(msg.body + "1"), Duration.Inf)
+
+            val tock = System.nanoTime()
+            
+            Await.ready(giannisSendAction, Duration.Inf)
+
+            val timeTakenForMessage = tock - tick
+            resultsSteffan = resultsSteffan.withAddedResult(timeTakenForMessage)
+        }
+        
+        return resultsSteffan
     }
 
     def generateRandomMessages(numMessages: Int, maxMessageLength: Int): List[ChatMessage] = {
@@ -183,6 +220,7 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
         runTimeOverhead(randomMessages)
         runSizeOverhead(randomMessages)
         runRoundtripTime(randomMessages.slice(0, 19))
+        rountripTimesConcurrentUsersBenchmark(randomMessages.slice(0, 19))
     }
 
     def toCSV(messages: List[ChatMessage], baselineDurations: Results, compareDurations: Results): Unit = {
