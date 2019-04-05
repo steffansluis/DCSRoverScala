@@ -70,29 +70,28 @@ class ChatOverheadMicroBench(val numRepetitions: Int,
         return nonRoverBenchDurations
     }
 
-    def getSizeOverhead = {
+    def getSizeOverhead: Unit = {
 
         /* test data */
         val randomMessages = generateRandomMessages(numRepetitions, maxMessageLength)
 
         /* scenarios under test: */
 
-        // The RdObject (its atomic state is measured, not the whole thing)
-        val rdObject = Chat.initial()
-
-        // Primitive chat (justa list of ChatMessages)
-        var primitiveObject = List[ChatMessage]()
 
         /* For results */
         var rdoSizes = new Results
         var primitiveSizes = new Results
 
         for (msg <- randomMessages) {
+            // The RdObject (its atomic state is measured, not the whole thing)
+            val rdObject = Chat.initial()
+
+            // Primitive chat (justa list of ChatMessages)
+            var primitiveObject = List[ChatMessage]()
 
             Await.ready(rdObject.send(msg), Duration.Inf)
             primitiveObject = primitiveObject :+ msg
 
-            // todo: get delta? As new object will probably contain the previous?
             val memorySizeInBytesOfAtomicObjectState = Utilities.sizeOf(rdObject.state)
             val memorySizeInBytesOfPrimitveObjectState = Utilities.sizeOf(primitiveObject)
 
