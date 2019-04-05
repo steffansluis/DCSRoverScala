@@ -28,7 +28,7 @@ class EphemeralServer[A <: Serializable] (
 //		println(s"   storage: ${storage}")
 
 		val state = storage.get(objectById)
-		println(state.get.immutableState)
+//		println(state.get.immutableState)
 
 		// return
 		state
@@ -37,7 +37,7 @@ class EphemeralServer[A <: Serializable] (
 	override def accept(incomingVersion: AtomicObjectState[A]): Unit = {
 
 		try {
-			println(s"Incoming: ${incomingVersion.immutableState}")
+//			println(s"Incoming: ${incomingVersion.immutableState}")
 
 			val serverVersion = get(incomingVersion.objectId)
 				.getOrElse({
@@ -45,12 +45,12 @@ class EphemeralServer[A <: Serializable] (
 					throw new Exception("Cannot accept incoming version, no corresponding object/state known to the server")
 				})
 
-			println(s"   server ver: ${serverVersion.immutableState}")
+//			println(s"   server ver: ${serverVersion.immutableState}")
 			val conflictedState = ConflictedState.from(serverVersion, incomingVersion)
-			println("   conflicted state created")
+//			println("   conflicted state created")
 			val mergeResult = serverConfiguration.conflictResolutionMechanism.resolveConflict(conflictedState)
 
-			println(s"  updating storage with updated: ${mergeResult.asAtomicObjectState.immutableState}")
+//			println(s"  updating storage with updated: ${mergeResult.asAtomicObjectState.immutableState}")
 			storage = storage updated(incomingVersion.objectId, mergeResult.asAtomicObjectState)
 		}
 		catch {

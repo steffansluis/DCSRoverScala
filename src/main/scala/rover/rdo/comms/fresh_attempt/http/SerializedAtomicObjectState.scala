@@ -34,6 +34,7 @@ class SerializedAtomicObjectState[A <: Serializable] (state: AtomicObjectState[A
 		val encoded = new Base64().encodeToString(asBytes)
 		
 //		println(encoded)
+		
 		//return
 		encoded
 	}
