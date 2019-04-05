@@ -4,8 +4,9 @@ import rover.rdo.RdObject
 import rover.rdo.state.AtomicObjectState
 
 class ConflictedState[A <: Serializable] private (val serverVersion: AtomicObjectState[A], val incomingVersion: AtomicObjectState[A]) {
-	def commonAncestor: CommonAncestor[A] = {
-		return new CommonAncestor[A](serverVersion, incomingVersion)
+	lazy val commonAncestor: CommonAncestor[A] = {
+		// return
+		new CommonAncestor[A](serverVersion, incomingVersion)
 	}
 
 	/**
@@ -13,8 +14,9 @@ class ConflictedState[A <: Serializable] private (val serverVersion: AtomicObjec
 	  * the common ancestor
 	  * @return The changes from ancestor to "incoming"
 	  */
-	def changesIncomingRelativeToCommonAncestor: DiffWithAncestor[A] = {
-		return diffWithAncestor(incomingVersion)
+	lazy val changesIncomingRelativeToCommonAncestor: DiffWithAncestor[A] = {
+		// return
+		diffWithAncestor(incomingVersion)
 	}
 
 	/**
@@ -22,8 +24,9 @@ class ConflictedState[A <: Serializable] private (val serverVersion: AtomicObjec
 	  * common ancestor
 	  * @return The changes from ancestor to "server"
 	  */
-	def changesOnServerRelativeToCommonAncestor: DiffWithAncestor[A] = {
-		return diffWithAncestor(serverVersion)
+	lazy val changesOnServerRelativeToCommonAncestor: DiffWithAncestor[A] = {
+		// return
+		diffWithAncestor(serverVersion)
 	}
 
 	def diffWithAncestor(childState: AtomicObjectState[A]): DiffWithAncestor[A] = {
