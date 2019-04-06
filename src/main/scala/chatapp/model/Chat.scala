@@ -6,12 +6,14 @@ import rover.rdo.comms.Client.OAuth2Credentials
 import rover.rdo.comms.{SelfSyncingRdo, SyncDecision}
 import rover.rdo.comms.SyncDecision.SyncDecision
 import rover.rdo.comms.fresh_attempt.Client
+import rover.rdo.comms.fresh_attempt.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
 import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
 
 import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Random
 
 
 // FIXME: ensure messages can be read, but not modified or reassigned...(crypto)
@@ -29,7 +31,7 @@ class Chat(
 	type Updater = AtomicObjectState[List[ChatMessage]] => Future[Unit]
 	val _onStateModified: Chat#Updater = null
 
-	def send(message: ChatMessage): Future[Unit]= {
+	def send(message: ChatMessage): Future[Unit] = {
 		val appendTheMessage = (s: List[ChatMessage]) => s :+ message
 
 		async {
@@ -38,13 +40,8 @@ class Chat(
 	}
 
 	/* SelfSyncing impl */
-
 	override def onStateModified(oldState: AtomicObjectState[List[ChatMessage]]): Future[Unit] = {
 		_onStateModified(state)
-	}
-
-	def currentVersion(): Long = {
-		immutableState.size
 	}
 
 	override def beforeSync(currentState: List[ChatMessage]): SyncDecision = {
@@ -69,18 +66,39 @@ class Chat(
 	}
 }
 
+trait DebuggableRdo[A <: Serializable] {
+	this: RdObject[A] =>
+
+	val atomicObjectState: AtomicObjectState[A] = {
+		this.state
+	}
+}
+
+
 object Chat {
 	def fromServer(client: Client[List[ChatMessage]], objectId: ObjectId): Chat = {
 		val fetched = client.fetch(objectId)
 		return new Chat(client, fetched)
 	}
 	
-//	def fromRDO(rdo: RdObject[List[ChatMessage]]): Chat = {
-//		new Chat(rdo.state, null)
-//	}
+	def fromCheckpointedState(checkPointedState: AtomicObjectState[List[ChatMessage]]): Chat = {
+		val serverAddress = ChatServer.SERVER_ADRESS
+		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(serverAddress, "chatapp"))
+		new Chat(client, checkPointedState)
+	}
 
 	def copyOf(chat: Chat): Chat = {
 		new Chat(chat.client, chat.state)
+	}
+
+	def initial(): Chat = {
+		val client = new ClientForServerOverHttp[List[ChatMessage]](ServerHttpEndpointPaths.atServer(ChatServer.SERVER_ADRESS, "chatapp"))
+		new Chat(client, AtomicObjectState.initial(List[ChatMessage]()))
+	}
+
+	def initialDubuggable(): Chat with DebuggableRdo[List[ChatMessage]] = {
+		val chat = new Chat(null, AtomicObjectState.initial(List[ChatMessage]())) with DebuggableRdo[List[ChatMessage]]
+		return chat
 	}
 }
 
@@ -128,6 +146,7 @@ object test {
 
 	}
 }
+
 
 
 

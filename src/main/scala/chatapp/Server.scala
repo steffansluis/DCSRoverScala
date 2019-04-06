@@ -36,6 +36,8 @@ class ChatServer(val serverImpl: EphemeralServer[List[ChatMessage]]) extends Ser
 object ChatServer {
 	//new ChatMessage("test", ChatUser.Steffan))
 	private val INITIAL = List[ChatMessage]()
+
+	val SERVER_ADRESS = "http://localhost:8080"
 	
 	private val startingServerStateStore = {
 		val initialAtomicObjectState = AtomicObjectState.initial(INITIAL)

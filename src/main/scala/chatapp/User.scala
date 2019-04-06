@@ -9,6 +9,7 @@ class ChatUser(val username: String) extends Serializable {
 }
 
 object ChatUser {
+	val System = new ChatUser("System")
 	val Steffan = new ChatUser("steffan")
 	val Giannis = new ChatUser("giannis")
 

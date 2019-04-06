@@ -4,8 +4,10 @@ import rover.rdo.RdObject
 import rover.rdo.conflict.{CommonAncestor, ConflictedState, DiffWithAncestor}
 import rover.rdo.state.AtomicObjectState
 
+import scala.util.Random
 
-class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) {
+
+class Poll(val question: String, val choices: List[PollChoice], state: AtomicObjectState[Votes]) extends RdObject[Votes](state) with Serializable {
 
 	def cast(vote: PollChoice): Unit = {
 		modifyState(votes => votes.add(vote))
@@ -27,8 +29,81 @@ object Poll {
 		return new Poll(question, choices, AtomicObjectState.initial(Votes(choices)))
 	}
 
+	def apply(question: String, numChoices: Int): Poll  = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new Poll(question, choices, AtomicObjectState.initial(Votes(choices)))
+	}
+
 	def copyOf(poll: Poll): Poll = {
 		return new Poll(poll.question, poll.choices, poll.state)
+	}
+
+	def toNonRover(poll: Poll): NonRoverPoll = {
+		return new NonRoverPoll(poll.question, poll.choices, poll.state.immutableState)
+	}
+
+	def generateRandom(question: String, numChoices: Int): Poll = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new Poll(question, choices, AtomicObjectState.initial(Votes.generateRandom(choices)))
+	}
+
+	def generateRandomPolls(question: String, numChoices: Int, numRepetitions: Int): List[Poll] = {
+		var randomPolls = List[Poll]()
+
+		Range.inclusive(1, numRepetitions).foreach(_ => {
+			randomPolls = randomPolls :+ generateRandom(question, numChoices)
+		})
+		return randomPolls
+	}
+
+	def toNonRoverRandomPolls(randomPolls: List[Poll]): List[NonRoverPoll] = {
+		var nonRoverRandomPolls = List[NonRoverPoll]()
+
+		for (poll <- randomPolls) {
+			nonRoverRandomPolls = nonRoverRandomPolls :+ Poll.toNonRover(poll)
+		}
+		return nonRoverRandomPolls
+	}
+}
+
+class NonRoverPoll(val question: String,
+				   val choices: List[PollChoice],
+				   val votes: Votes) extends Serializable {
+
+	def cast(vote: PollChoice): Unit =  {
+		votes.add(vote)
+	}
+
+	def result: PollResult = {
+		return new PollResult(votes)
+	}
+}
+
+object NonRoverPoll {
+	def apply(question: String, choices: List[PollChoice]): NonRoverPoll = {
+		return new NonRoverPoll(question, choices, Votes(choices))
+	}
+
+	def apply(question: String, numChoices: Int): NonRoverPoll  = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new NonRoverPoll(question, choices, Votes(choices))
+	}
+
+	def generateRandom(question: String, numChoices: Int): NonRoverPoll = {
+		var choices = List[PollChoice]()
+		Range.inclusive(1, numChoices).foreach(choiceId => {
+			choices = choices :+ PollChoice(s"Choice$choiceId")
+		})
+		return new NonRoverPoll(question, choices, Votes.generateRandom(choices))
 	}
 }
 
@@ -39,6 +114,7 @@ class PollResult(private  val votes: Votes) {
 }
 
 case class PollChoice(choice: String)
+
 
 @SerialVersionUID(123L)
 class Votes(val map: Map[PollChoice, Int]) extends Serializable {
@@ -71,6 +147,10 @@ object Votes {
 	def apply(votes: Map[PollChoice, Int]): Votes = {
 		return new Votes(votes.withDefaultValue(0))
 	}
+
+	def generateRandom(choices: List[PollChoice]): Votes = {
+		return new Votes(choices.map(choice => (choice, Random.nextInt(100))).toMap)
+	}
 }
 
 object henk {
@@ -99,44 +179,3 @@ object henk {
 	}
 }
 
-object sjaak {
-	def main(args: Array[String]): Unit = {
-		val poll = Poll("Does this work", List(PollChoice("Yes"), PollChoice("No"), PollChoice("I hope so"), PollChoice("Yes")))
-
-		/* Common ancestor state: 1 no vote */
-		poll.cast(PollChoice("No"))
-		println(s"Common ancestor: $poll \n\n")
-
-
-		val poll2 = Poll.copyOf(poll)
-
-		/* Vote in Poll 1 */
-		poll.cast(PollChoice("Yes"))
-		poll.cast(PollChoice("Yes"))
-		poll.cast(PollChoice("No"))
-
-		/* Vote in Poll 2 */
-		poll2.cast(PollChoice("No"))
-		poll2.cast(PollChoice("No"))
-
-
-		println("Poll:" + poll + "\n\n")
-		println("Poll2:" + poll2 + "\n\n")
-
-		val ancestor = CommonAncestor.from(poll, poll2)
-		val ancestorState = ancestor.state
-		println("Ancestor:" + ancestor.toString)
-
-		val diffPoll1vsCommon = new DiffWithAncestor[Votes](poll.state, ancestorState)
-		println("Diff poll1 and common ancestor: " + diffPoll1vsCommon.toString)
-
-		val diffPoll2vsCommon = new DiffWithAncestor[Votes](poll2.state, ancestorState)
-		println("Diff poll2 and common ancestor: " + diffPoll2vsCommon.toString)
-
-		val pollMergeConflictResolutionMechanism = new PollAppMergeConflictResolutionMechanism()
-		val resolved = pollMergeConflictResolutionMechanism.resolveConflict(ConflictedState.from(poll, poll2))
-		println(s"\n\nResolved: $resolved")
-
-		println(s"\n    log of resolved: ${resolved.asAtomicObjectState.log.asList.mkString("\n     ")}")
-	}
-}

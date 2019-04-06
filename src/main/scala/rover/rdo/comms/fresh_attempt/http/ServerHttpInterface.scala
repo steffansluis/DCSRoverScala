@@ -20,12 +20,12 @@ class ServerHttpInterface[A <: Serializable](
 	private val port: Integer,
 	private val serverImpl: Server[A]
 ) {
-	val endpointPaths = ServerHttpEndpointPaths.forServer(applicationName)
+	private val endpointPaths = ServerHttpEndpointPaths.forServer(applicationName)
 
 	Spark.port(port)
 	
 	// debug
-	Spark.before("/*", (q, a) => println(q.pathInfo()))
+//	Spark.before("/*", (q, a) => println(q.pathInfo()))
 	
 	exception(classOf[Exception], (exception: Exception, request: Request, response: Response) => {
 		println(s"Exception: ${exception}")
@@ -73,7 +73,7 @@ class ServerHttpInterface[A <: Serializable](
 		val deserializedAtomicObjectState = DeserializedAtomicObjectState.apply[A](postedContent)
 
 		val incomingState = deserializedAtomicObjectState.asAtomicObjectState
-		println(s"request for Accept: ${incomingState.immutableState}")
+//		println(s"request for Accept: ${incomingState.immutableState}")
 		serverImpl.accept(incomingState)
 
 		result.status(200)
@@ -81,7 +81,7 @@ class ServerHttpInterface[A <: Serializable](
 	})
 
 	get(endpointPaths.statusEndpoint, (request, result) => {
-		// TODO
+		// TODO for heartbeat
 		result.status(200)
 
 		result
