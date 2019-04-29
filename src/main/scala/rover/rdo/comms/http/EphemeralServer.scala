@@ -1,7 +1,7 @@
-package rover.rdo.comms.fresh_attempt.http
+package rover.rdo.comms.http
 
 import rover.rdo.ObjectId
-import rover.rdo.comms.fresh_attempt.{Server, ServerConfiguration}
+import rover.rdo.comms.{Server, ServerConfiguration}
 import rover.rdo.conflict.ConflictedState
 import rover.rdo.state.AtomicObjectState
 

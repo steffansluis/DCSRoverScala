@@ -3,7 +3,7 @@ package chatapp
 import chatapp.model.{Chat, ChatMessage}
 import chatapp.ui.REPL
 import rover.rdo.ObjectId
-import rover.rdo.comms.fresh_attempt.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
+import rover.rdo.comms.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
 
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global

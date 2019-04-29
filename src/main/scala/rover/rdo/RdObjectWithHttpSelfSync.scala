@@ -1,39 +1,38 @@
-package rover
+package rover.rdo
 
 import java.util.concurrent.TimeUnit
 
 import rover.rdo.comms.SyncDecision.SyncDecision
-import rover.rdo.comms.{Client, SelfSyncingRdo, Session, SyncDecision}
+import rover.rdo.comms.{SelfSyncingRdo, Session}
 import rover.rdo.state.AtomicObjectState
-import rover.rdo.{ObjectId, RdObject}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-/**
-  * This is a sort of combined repository & factory for RdObjects
-  * Currently every RdObject is implemented with AtomicStateObjects
-  *
-  * @param server
-  * @tparam A
-  * @tparam C
-  * @tparam RDO
-  */
-abstract class RoverApplicationBootstrap[A <: Serializable, C, RDO <: RdObject[A]] (
-		private val client: Client[C, A],
-		private val credentials: C
-) {
-	// TODO: decorate Session s.t. it self-updates when needed and expired
-	private def session: Session[C, A] = {
-		return client.createSession(credentials)
-	}
-
-	def checkoutObject(objectId: ObjectId): Unit = {
-		session.importRDO(objectId)
-	}
-
-
-}
+///**
+//  * This is a sort of combined repository & factory for RdObjects
+//  * Currently every RdObject is implemented with AtomicStateObjects
+//  *
+//  * @param server
+//  * @tparam A
+//  * @tparam C
+//  * @tparam RDO
+//  */
+//abstract class RoverApplicationBootstrap[A <: Serializable, C, RDO <: RdObject[A]] (
+//		private val client: Client[C, A],
+//		private val credentials: C
+//) {
+//	// TODO: decorate Session s.t. it self-updates when needed and expired
+//	private def session: Session[C, A] = {
+//		return client.createSession(credentials)
+//	}
+//
+//	def checkoutObject(objectId: ObjectId): Unit = {
+//		session.importRDO(objectId)
+//	}
+//
+//
+//}
 
 class RdObjectWithHttpSelfSync[A <: Serializable, C](
 	val _beforeSync: A => SyncDecision,

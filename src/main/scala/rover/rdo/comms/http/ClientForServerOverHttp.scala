@@ -1,8 +1,8 @@
-package rover.rdo.comms.fresh_attempt.http
+package rover.rdo.comms.http
 
 import kong.unirest.Unirest
 import rover.rdo.ObjectId
-import rover.rdo.comms.fresh_attempt.Client
+import rover.rdo.comms.Client
 import rover.rdo.state.AtomicObjectState
 
 /**

@@ -2,9 +2,8 @@ package chatapp
 
 import chatapp.model.ChatMessage
 import rover.rdo.ObjectId
-import rover.rdo.comms.HTTPServer
-import rover.rdo.comms.fresh_attempt.{Server, ServerConfiguration}
-import rover.rdo.comms.fresh_attempt.http.{ServerHttpInterface, EphemeralServer}
+import rover.rdo.comms.{Server, ServerConfiguration}
+import rover.rdo.comms.http.{EphemeralServer, ServerHttpInterface}
 import rover.rdo.state.AtomicObjectState
 
 // Previous impl:

@@ -1,19 +1,16 @@
 package chatapp.model
 
-import chatapp.{ChatAppClient, ChatConflictResolutionMechanism, ChatServer, ChatUser}
-import rover.rdo.{ObjectId, RdObject}
-import rover.rdo.comms.Client.OAuth2Credentials
-import rover.rdo.comms.{SelfSyncingRdo, SyncDecision}
+import chatapp.{ChatConflictResolutionMechanism, ChatServer, ChatUser}
 import rover.rdo.comms.SyncDecision.SyncDecision
-import rover.rdo.comms.fresh_attempt.Client
-import rover.rdo.comms.fresh_attempt.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
+import rover.rdo.comms.http.{ClientForServerOverHttp, ServerHttpEndpointPaths}
+import rover.rdo.comms.{Client, SelfSyncingRdo, SyncDecision}
 import rover.rdo.conflict.{CommonAncestor, ConflictedState}
 import rover.rdo.state.{AtomicObjectState, InitialAtomicObjectState}
+import rover.rdo.{ObjectId, RdObject}
 
 import scala.async.Async.async
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Random
 
 
 // FIXME: ensure messages can be read, but not modified or reassigned...(crypto)

@@ -1,4 +1,4 @@
-package rover.rdo.comms.fresh_attempt.http
+package rover.rdo.comms.http
 
 import java.io._
 import java.nio.charset.Charset
